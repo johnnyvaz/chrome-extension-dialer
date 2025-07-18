@@ -57,6 +57,9 @@ module.exports = [
     },
     resolve: {
       extensions: [".ts", ".tsx", ".js"],
+      fallback: {
+        events: require.resolve("events/"),
+      },
     },
   },
   {
@@ -111,6 +114,9 @@ module.exports = [
         src: path.resolve(__dirname, "src/"),
       },
       extensions: [".tsx", ".ts", ".js"],
+      fallback: {
+        events: require.resolve("events/"),
+      },
     },
     output: {
       path: path.join(__dirname, "dist/window"),
@@ -127,7 +133,7 @@ function getHtmlPlugins(chunks) {
   return chunks.map(
     (chunk) =>
       new HTMLPlugin({
-        title: "Jambonz Webphone",
+        title: "Scany Webphone",
         filename: `${chunk}.html`,
         chunks: [chunk],
       })

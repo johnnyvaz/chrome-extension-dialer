@@ -12,6 +12,7 @@ import { DTMF_TRANSPORT } from "jssip/lib/Constants";
 import { IncomingResponse } from "jssip/lib/SIPMessage";
 import * as events from "events";
 import { C, Grammar } from "jssip";
+import { auditoriaService } from "../services/auditoriaService";
 
 export default class SipSession extends events.EventEmitter {
   #id: string;
@@ -65,13 +66,27 @@ export default class SipSession extends events.EventEmitter {
     this.#rtcSession.on(
       "accepted",
       ({ response }: { response: IncomingResponse }) => {
+        const callSid = response?.hasHeader("X-Call-Sid")
+          ? response.getHeader("X-Call-Sid")
+          : null;
+        
         this.emit(SipConstants.SESSION_ANSWERED, {
           status: SipConstants.SESSION_ANSWERED,
-          callSid: response?.hasHeader("X-Call-Sid")
-            ? response.getHeader("X-Call-Sid")
-            : null,
+          callSid,
         });
         this.#audio.playAnswer(undefined);
+
+        // Iniciar tracking de auditoria
+        if (auditoriaService.isEnabled()) {
+          const direction = this.direction === 'incoming' ? 'inbound' : 'outbound';
+          auditoriaService.startCallTracking(
+            this.#id,
+            this.user,
+            direction
+          ).catch(error => {
+            console.error('Erro ao iniciar tracking de auditoria:', error);
+          });
+        }
       }
     );
 
@@ -120,6 +135,14 @@ export default class SipSession extends events.EventEmitter {
           description = `${reason.cause}`.trim();
         }
       }
+      
+      // Finalizar tracking de auditoria
+      if (auditoriaService.isEnabled()) {
+        auditoriaService.endCallTracking(this.#id).catch(error => {
+          console.error('Erro ao finalizar tracking de auditoria:', error);
+        });
+      }
+
       this.emit(SipConstants.SESSION_ENDED, {
         cause: cause,
         status: SipConstants.SESSION_ENDED,

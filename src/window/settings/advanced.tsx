@@ -91,27 +91,25 @@ export const AdvancedSettings = () => {
           p={0}
         >
           <FormControl id="jambonz_api_server">
-            <FormLabel>Jambonz API Server Base URL</FormLabel>
+            <FormLabel>Scany API Server Base URL</FormLabel>
             <Input
               type="text"
               placeholder="https://jambonz.cloud/api"
-              isRequired
               value={apiServer}
               onChange={(e) => setApiServer(e.target.value)}
             />
           </FormControl>
           <FormControl id="jambonz_account_sid">
-            <FormLabel>Jambonz Account Sid</FormLabel>
+            <FormLabel>Scany Account Sid</FormLabel>
             <Input
               type="text"
-              isRequired
               value={accountSid}
               onChange={(e) => setAccountSid(e.target.value)}
             />
           </FormControl>
           <FormControl id="api_key">
             <FormLabel>API Key</FormLabel>
-            <PasswordInput password={[apiKey, setApiKey]} isRequired />
+            <PasswordInput password={[apiKey, setApiKey]} />
           </FormControl>
         </VStack>
         {isAdvancedMode && (

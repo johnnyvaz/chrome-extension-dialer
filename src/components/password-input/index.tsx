@@ -24,7 +24,7 @@ function PasswordInput({
         type={showPassword ? "text" : "password"}
         placeholder={placeHolder || ""}
         value={pass}
-        isRequired
+        isRequired={isRequired}
         onChange={(e) => setPass(e.target.value)}
       />
       <InputRightElement width="4.5rem">

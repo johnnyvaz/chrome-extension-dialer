@@ -86,7 +86,7 @@ export const BasicSettings = () => {
           p={0}
         >
           <FormControl id="jambonz_sip_domain">
-            <FormLabel>Jambonz SIP Domain</FormLabel>
+            <FormLabel>Scany SIP Domain</FormLabel>
             <Input
               type="text"
               placeholder="Domain"
@@ -97,10 +97,10 @@ export const BasicSettings = () => {
           </FormControl>
 
           <FormControl id="jambonz_server_address">
-            <FormLabel>Jambonz Server Address</FormLabel>
+            <FormLabel>Scany Server Address</FormLabel>
             <Input
               type="text"
-              placeholder="wss://sip.jambonz.cloud:8443/"
+              placeholder="wss://sip.scany.cloud:8443/"
               isRequired
               value={sipServerAddress}
               onChange={(e) => setSipServerAddress(e.target.value)}

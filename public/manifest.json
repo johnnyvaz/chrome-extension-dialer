@@ -1,10 +1,10 @@
 {
-  "version": "1.0.6",
+  "version": "1.0.7",
   "manifest_version": 3,
-  "name": "jambonz webrtc phone",
-  "description": "jambonz webrtc phone",
+  "name": "scany webrtc phone",
+  "description": "scany webrtc phone",
   "action": {
-    "default_title": "jambonz webrtc phone"
+    "default_title": "scany webrtc phone"
   },
   "background": {
     "service_worker": "background/index.js"

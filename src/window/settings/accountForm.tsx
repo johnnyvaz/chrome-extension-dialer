@@ -105,7 +105,7 @@ function AccountForm({
 
     formData ? editSettings(settings, formData.id) : saveSettings(settings);
 
-    if (showAdvanced) {
+    if (showAdvanced && settings.apiServer && settings.accountSid) {
       setIsAdvancedMode(true);
       checkCredential(settings.apiServer || "", settings.accountSid || "");
     }
@@ -178,7 +178,7 @@ function AccountForm({
             />
           </FormControl>
           <FormControl id={`jambonz_sip_domain${inputUniqueId}`}>
-            <FormLabel>Jambonz SIP Domain</FormLabel>
+            <FormLabel>Scany SIP Domain</FormLabel>
             <Input
               type="text"
               placeholder="Domain"
@@ -189,10 +189,10 @@ function AccountForm({
           </FormControl>
 
           <FormControl id={`jambonz_server_address${inputUniqueId}`}>
-            <FormLabel>Jambonz Server Address</FormLabel>
+            <FormLabel>Scany Server Address</FormLabel>
             <Input
               type="text"
-              placeholder="wss://sip.jambonz.cloud:8443/"
+              placeholder="wss://sip.scany.cloud:8443/"
               isRequired
               value={sipServerAddress}
               onChange={(e) => setSipServerAddress(e.target.value)}
@@ -221,29 +221,26 @@ function AccountForm({
             <AnimateOnShow>
               <VStack w={"full"} bg={"gray.50"} borderRadius={"2xl"} p={"3.5"}>
                 <FormControl id={`jambonz_api_server${inputUniqueId}`}>
-                  <FormLabel>Jambonz API Server Base URL</FormLabel>
+                  <FormLabel>Scany API Server Base URL (Optional)</FormLabel>
                   <Input
                     type="text"
                     placeholder="https://jambonz.cloud/api"
-                    isRequired
                     value={apiServer}
                     onChange={(e) => setApiServer(e.target.value)}
                   />
                 </FormControl>
                 <FormControl id={`jambonz_account_sid${inputUniqueId}`}>
-                  <FormLabel>Jambonz Account Sid</FormLabel>
+                  <FormLabel>Jambonz Account Sid (Optional)</FormLabel>
                   <Input
                     type="text"
-                    isRequired
                     value={accountSid}
                     onChange={(e) => setAccountSid(e.target.value)}
                   />
                 </FormControl>
                 <FormControl id={`api_key${inputUniqueId}`}>
-                  <FormLabel>API Key</FormLabel>
+                  <FormLabel>API Key (Optional)</FormLabel>
                   <PasswordInput
                     password={[apiKey || "", setApiKey]}
-                    isRequired
                   />
                 </FormControl>
 
