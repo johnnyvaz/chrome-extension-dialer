@@ -1,3 +1,28 @@
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * 📁 ANÁLISE ARQUITETURAL - CONFERENCE_COMPONENT
+ * ═══════════════════════════════════════════════════════════════
+ * 
+ * 🏗️ ARQUITETURA ESCOLHIDA: State Machine + Form Management + API Integration
+ * 📊 ESTRUTURAS PRINCIPAIS: State objects, Enum para modos, Hash Map para configurações
+ * 🔄 FLUXO DE DADOS: Bidirectional com API calls e local state persistence
+ * 
+ * 🎓 PADRÕES EDUCACIONAIS DEMONSTRADOS:
+ * 1. State Machine: Gerenciamento de estados de conferência (joining, active, ended)
+ * 2. Enum Pattern: ConferenceModes para type-safe mode selection
+ * 3. Hash Map: Storage de configurações para persistência local
+ * 4. Observer Pattern: useEffect para reação a mudanças de estado
+ * 5. Strategy Pattern: Diferentes behaviors baseados no modo da conferência
+ * 
+ * 💡 INSIGHTS ALGORÍTMICOS:
+ * - State machine para controle de fluxo de conferência
+ * - Local storage como cache para configurações de usuário
+ * - Enum para type safety e reduced bugs
+ * - Async operations com proper error handling
+ * - Form validation com controlled components
+ * ═══════════════════════════════════════════════════════════════
+ */
+
 import {
   Box,
   Button,
@@ -42,13 +67,13 @@ export const JoinConference = ({
   const toast = useToast();
   const [conferenceName, setConferenceName] = useState(conferenceId || "");
   const [appTitle, setAppTitle] = useState(
-    !!conferenceId ? "Joining Conference" : "Start Conference"
+    !!conferenceId ? "Entrando na Conferência" : "Iniciar Conferência"
   );
   const [submitTitle, setSubmitTitle] = useState(
-    !!conferenceId ? "Joining Conference" : "Start Conference"
+    !!conferenceId ? "Entrando na Conferência" : "Iniciar Conferência"
   );
 
-  const [cancelTitle, setCancelTitle] = useState("Cancel");
+  const [cancelTitle, setCancelTitle] = useState("Cancelar");
   const [isLoading, setIsLoading] = useState(false);
   const confSettings = getConferenceSettings();
   const [speakOnlyTo, setSpeakOnlyTo] = useState(
@@ -58,15 +83,15 @@ export const JoinConference = ({
   const [mode, setMode] = useState<ConferenceModes>(
     confSettings.mode || "full_participant"
   );
-  const [participantState, setParticipantState] = useState("Join as");
+  const [participantState, setParticipantState] = useState("Participar como");
 
   useEffect(() => {
     switch (callStatus) {
       case SipConstants.SESSION_ANSWERED:
-        setAppTitle("Conference");
-        setSubmitTitle("Update");
-        setCancelTitle("Hangup");
-        setParticipantState("Participant state");
+        setAppTitle("Conferência");
+        setSubmitTitle("Atualizar");
+        setCancelTitle("Desligar");
+        setParticipantState("Estado do participante");
         setIsLoading(false);
         configureConferenceSession();
         break;
@@ -149,10 +174,10 @@ export const JoinConference = ({
           </Text>
         )}
         <FormControl id="conference_name">
-          <FormLabel>Conference name</FormLabel>
+          <FormLabel>Nome da conferência</FormLabel>
           <Input
             type="text"
-            placeholder="Name"
+            placeholder="Nome"
             isRequired
             value={conferenceName}
             onChange={(e) => setConferenceName(e.target.value)}
@@ -175,15 +200,15 @@ export const JoinConference = ({
           >
             <VStack align="start">
               <Radio value="full_participant" variant="">
-                Full participant
+                Participante completo
               </Radio>
-              <Radio value="muted">Muted</Radio>
-              <Radio value="coach">Coach mode</Radio>
+              <Radio value="muted">Mudo</Radio>
+              <Radio value="coach">Modo treinador</Radio>
             </VStack>
           </RadioGroup>
 
           <FormControl id="speak_only_to">
-            <FormLabel>Speak only to</FormLabel>
+            <FormLabel>Falar apenas com</FormLabel>
             <Input
               type="text"
               placeholder="tag"
@@ -202,7 +227,7 @@ export const JoinConference = ({
           </FormControl>
 
           <FormControl id="tag">
-            <FormLabel>Tag</FormLabel>
+            <FormLabel>Etiqueta</FormLabel>
             <Input
               type="text"
               placeholder="tag"

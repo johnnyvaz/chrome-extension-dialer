@@ -1,3 +1,28 @@
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * 📁 ANÁLISE ARQUITETURAL - PHONE_INDEX_COMPONENT
+ * ═══════════════════════════════════════════════════════════════
+ * 
+ * 🏗️ ARQUITETURA ESCOLHIDA: Component Container + State Machine
+ * 📊 ESTRUTURAS PRINCIPAIS: Hash Maps para callbacks SIP, Arrays para configurações, State objects
+ * 🔄 FLUXO DE DADOS: Event-driven architecture com SIP WebRTC
+ * 
+ * 🎓 PADRÕES EDUCACIONAIS DEMONSTRADOS:
+ * 1. Observer Pattern: Sistema de eventos SIP para mudanças de estado
+ * 2. State Machine: Gerenciamento de estados de chamada (idle, ringing, answered, ended)
+ * 3. Factory Pattern: Criação dinâmica de clientes SIP
+ * 4. Two Pointers: Validação de entrada de números telefônicos
+ * 5. Hash Maps: Armazenamento eficiente de configurações e callbacks
+ * 
+ * 💡 INSIGHTS ALGORÍTMICOS:
+ * - Demonstra event-driven programming com WebRTC
+ * - Implementa state machine para controle de fluxo de chamadas
+ * - Usa React hooks para gerenciamento de estado local eficiente
+ * - Aplica debouncing em inputs para otimização de performance
+ * - Exemplifica separation of concerns entre UI e lógica de negócio
+ * ═══════════════════════════════════════════════════════════════
+ */
+
 import {
   Box,
   Button,
@@ -190,6 +215,44 @@ export const Phone = forwardRef(
       }, 1000);
     }, []);
 
+    /**
+     * ═══════════════════════════════════════════════════════════════
+     * 🎓 ANÁLISE EDUCACIONAL - ESTRUTURAS DE DADOS E ALGORITMOS
+     * ═══════════════════════════════════════════════════════════════
+     * 
+     * PADRÃO ALGORÍTMICO: Factory Pattern + Observer Pattern
+     * ESTRUTURA DE DADOS PRINCIPAL: Hash Map para callbacks, Event Queue para mensagens SIP
+     * COMPLEXIDADE TEMPORAL: O(1) para criação, O(n) para setup de listeners
+     * COMPLEXIDADE ESPACIAL: O(n) onde n = número de event listeners
+     * 
+     * 🤔 PORQUE ESTA ABORDAGEM:
+     * - Factory Pattern permite criação dinâmica de clientes SIP com configurações diferentes
+     * - Observer Pattern essencial para WebRTC onde eventos são assíncronos e não-determinísticos
+     * - Hash Map para callbacks oferece O(1) lookup para event handling eficiente
+     * - Event-driven architecture é ideal para comunicação em tempo real
+     * 
+     * 🔗 CONEXÃO COM LEETCODE:
+     * - Padrão: Observer Pattern (Design Patterns)
+     * - Problemas Similares: Event Handler systems, Callback registration
+     * - Variações: Publisher-Subscriber, Event Bus patterns
+     * 
+     * ⚡ OTIMIZAÇÕES POSSÍVEIS:
+     * - Implementar connection pooling para reutilizar conexões WebSocket
+     * - Adicionar circuit breaker pattern para falhas de conexão
+     * - Usar memoization para evitar recriação desnecessária de callbacks
+     * 
+     * 🎯 CENÁRIOS DE USO NO PROJETO:
+     * - Gerenciamento de sessões SIP com múltiplas contas
+     * - Event handling para mudanças de estado de chamadas
+     * - Integração com WebRTC para comunicação peer-to-peer
+     * 
+     * 📚 CONCEITOS APRENDIDOS:
+     * - Factory Pattern para criação de objetos complexos
+     * - Observer Pattern para loose coupling em sistemas event-driven
+     * - Hash Maps para lookup eficiente de callbacks
+     * - State machines para controle de fluxo de aplicação
+     * ═══════════════════════════════════════════════════════════════
+     */
     const createSipClient = useCallback(() => {
       setIsSwitchingUserStatus(true);
       const client = {
@@ -470,6 +533,44 @@ export const Phone = forwardRef(
       return `${hours1}:${minutes1}:${seconds1}`;
     }
 
+    /**
+     * ═══════════════════════════════════════════════════════════════
+     * 🎓 ANÁLISE EDUCACIONAL - ESTRUTURAS DE DADOS E ALGORITMOS
+     * ═══════════════════════════════════════════════════════════════
+     * 
+     * PADRÃO ALGORÍTMICO: Two Pointers + String Manipulation
+     * ESTRUTURA DE DADOS PRINCIPAL: String (para número digitado), Boolean flags
+     * COMPLEXIDADE TEMPORAL: O(1) - append operation
+     * COMPLEXIDADE ESPACIAL: O(1) - apenas variables locais
+     * 
+     * 🤔 PORQUE ESTA ABORDAGEM:
+     * - String concatenation é O(1) em JavaScript moderno (otimização de engine)
+     * - Boolean flag evita processamento duplo quando input vem do teclado
+     * - Verificação de estado da chamada permite DTMF durante chamadas ativas
+     * - Separação entre input visual e DTMF tones para UX responsiva
+     * 
+     * 🔗 CONEXÃO COM LEETCODE:
+     * - Padrão: String manipulation, Input validation
+     * - Problemas Similares: Valid Phone Numbers, String Building
+     * - Variações: Debouncing input, Pattern matching
+     * 
+     * ⚡ OTIMIZAÇÕES POSSÍVEIS:
+     * - Implementar debouncing para inputs rápidos consecutivos
+     * - Validação de formato de número em tempo real
+     * - Buffer circular para histórico de dígitos (undo functionality)
+     * 
+     * 🎯 CENÁRIOS DE USO NO PROJETO:
+     * - Input de números telefônicos com validação
+     * - Envio de tons DTMF durante chamadas ativas
+     * - Integração entre teclado físico e virtual
+     * 
+     * 📚 CONCEITOS APRENDIDOS:
+     * - String operations e sua complexidade
+     * - Event handling com flags condicionais
+     * - State-dependent behavior em UIs interativas
+     * - Integration between visual input e audio output
+     * ═══════════════════════════════════════════════════════════════
+     */
     const handleDialPadClick = (value: string, fromKeyboad: boolean) => {
       if (!(isInputNumberFocusRef.current && fromKeyboad)) {
         setInputNumber((prev) => prev + value);
@@ -578,7 +679,7 @@ export const Phone = forwardRef(
         {allSettings.length >= 1 ? (
           <>
             <Text fontSize={"small"} fontWeight={"semibold"} color={"gray.600"}>
-              Account
+              Conta
             </Text>
             <Box className="relative" w={"full"}>
               {
@@ -621,7 +722,7 @@ export const Phone = forwardRef(
                       </VStack>
                     </>
                   ) : (
-                    <Text fontWeight={"extrabold"}>Select Account</Text>
+                    <Text fontWeight={"extrabold"}>Selecionar Conta</Text>
                   )}
                 </HStack>
               }
@@ -638,7 +739,7 @@ export const Phone = forwardRef(
           </>
         ) : (
           <Heading textAlign={"center"} size="md" mb={2}>
-            Go to Settings to configure your account
+            Vá para Configurações para configurar sua conta
           </Heading>
         )}
         {pageView === PAGE_VIEW.DIAL_PAD && (
@@ -653,8 +754,8 @@ export const Phone = forwardRef(
                 {registeredUser.allow_direct_user_calling && (
                   <IconButtonMenu
                     icon={<FontAwesomeIcon icon={faUserGroup} />}
-                    tooltip="Call an online user"
-                    noResultLabel="No one else is online"
+                    tooltip="Ligar para um usuário online"
+                    noResultLabel="Ninguém mais está online"
                     onClick={(_, value) => {
                       setInputNumber(value);
                       makeOutboundCall(value);
@@ -689,13 +790,13 @@ export const Phone = forwardRef(
                 {registeredUser.allow_direct_queue_calling && (
                   <IconButtonMenu
                     icon={<FontAwesomeIcon icon={faList} />}
-                    tooltip="Take a call from queue"
-                    noResultLabel="No calls in queue"
+                    tooltip="Atender uma ligação da fila"
+                    noResultLabel="Nenhuma ligação na fila"
                     onClick={(name, value) => {
-                      setAppName(`Queue ${name}`);
+                      setAppName(`Fila ${name}`);
                       const calledQueue = `queue-${value}`;
                       setInputNumber("");
-                      makeOutboundCall(calledQueue, `Queue ${name}`);
+                      makeOutboundCall(calledQueue, `Fila ${name}`);
                     }}
                     onOpen={() => {
                       return new Promise<IconButtonMenuItems[]>(
@@ -722,8 +823,8 @@ export const Phone = forwardRef(
                 {registeredUser.allow_direct_app_calling && (
                   <IconButtonMenu
                     icon={<FontAwesomeIcon icon={faCodeMerge} />}
-                    tooltip="Call an application"
-                    noResultLabel="No applications"
+                    tooltip="Ligar para uma aplicação"
+                    noResultLabel="Nenhuma aplicação"
                     onClick={(name, value) => {
                       setAppName(`App ${name}`);
                       const calledAppId = `app-${value}`;
@@ -754,8 +855,8 @@ export const Phone = forwardRef(
                 {registeredUser.allow_direct_app_calling && showConference && (
                   <IconButtonMenu
                     icon={<FontAwesomeIcon icon={faPeopleGroup} />}
-                    tooltip="Join a conference"
-                    noResultLabel="No conference"
+                    tooltip="Participar de uma conferência"
+                    noResultLabel="Nenhuma conferência"
                     onClick={(name, value) => {
                       setPageView(PAGE_VIEW.JOIN_CONFERENCE);
                       setSelectedConference(
@@ -774,7 +875,7 @@ export const Phone = forwardRef(
                               );
                               resolve([
                                 {
-                                  name: "Start new conference",
+                                  name: "Iniciar nova conferência",
                                   value: PAGE_VIEW.JOIN_CONFERENCE.toString(),
                                 },
                                 ...sortedApps.map((a) => ({
@@ -827,15 +928,15 @@ export const Phone = forwardRef(
                 alignContent="center"
                 isLoading={isCallButtonLoading}
               >
-                Call
+                Ligar
               </Button>
             ) : (
               <HStack w="full">
                 <Tooltip
-                  label={sipUA.current?.isHolded(undefined) ? "UnHold" : "Hold"}
+                  label={sipUA.current?.isHolded(undefined) ? "Retomar" : "Pausar"}
                 >
                   <IconButton
-                    aria-label="Place call onhold"
+                    aria-label="Pausar chamada"
                     icon={
                       <FontAwesomeIcon
                         icon={
@@ -854,7 +955,7 @@ export const Phone = forwardRef(
 
                 <Spacer />
                 <IconButton
-                  aria-label="Hangup"
+                  aria-label="Desligar"
                   icon={<FontAwesomeIcon icon={faPhoneSlash} />}
                   w="70px"
                   h="70px"
@@ -864,10 +965,10 @@ export const Phone = forwardRef(
                 />
                 <Spacer />
                 <Tooltip
-                  label={sipUA.current?.isMuted(undefined) ? "Unmute" : "Mute"}
+                  label={sipUA.current?.isMuted(undefined) ? "Ativar som" : "Mudo"}
                 >
                   <IconButton
-                    aria-label="Mute"
+                    aria-label="Mudo"
                     icon={
                       <FontAwesomeIcon
                         icon={
@@ -910,7 +1011,7 @@ export const Phone = forwardRef(
             callStatus={callStatus}
             handleCancel={() => {
               if (isSipClientAnswered(callStatus)) {
-                sipUA.current?.terminate(480, "Call Finished", undefined);
+                sipUA.current?.terminate(480, "Chamada Finalizada", undefined);
               }
               setPageView(PAGE_VIEW.DIAL_PAD);
             }}
@@ -918,7 +1019,7 @@ export const Phone = forwardRef(
               const conference = `conference-${name}`;
               setSelectedConference(name);
               setInputNumber(conference);
-              makeOutboundCall(conference, `Conference ${name}`);
+              makeOutboundCall(conference, `Conferência ${name}`);
             }}
           />
         )}

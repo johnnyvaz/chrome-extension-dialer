@@ -100,7 +100,7 @@ export const BasicSettings = () => {
             <FormLabel>Scany Server Address</FormLabel>
             <Input
               type="text"
-              placeholder="wss://sip.scany.cloud:8443/"
+              placeholder="wss://192.168.1.126:8089/ws"
               isRequired
               value={sipServerAddress}
               onChange={(e) => setSipServerAddress(e.target.value)}

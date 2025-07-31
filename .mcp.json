@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "docker-project": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-docker"
+      ],
+      "env": {}
+    }
+  }
+}
