@@ -1,0 +1,655 @@
+openapi: 3.0.3
+info:
+  title: Scany Softphone Authentication API
+  description: API de autenticação para extensão Chrome do softphone Scany
+  version: 1.0.0
+  contact:
+    name: Scany Support
+    url: https://scany.com.br
+
+servers:
+  - url: https://api.stage.scany.com.br/api/v1
+    description: Staging environment
+  - url: https://api.scany.com.br/api/v1
+    description: Production environment
+
+tags:
+  - name: Authentication
+    description: Endpoints de autenticação e gerenciamento de sessão
+  - name: Profile
+    description: Endpoints de perfil do operador
+  - name: Password
+    description: Endpoints de gerenciamento de senha
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Registrar novo operador
+      description: |
+        Cria uma nova conta de operador. O backend automaticamente:
+        - Cria projeto padrão para a empresa
+        - Cria insight pré-configurado
+        - Envia email de confirmação
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Operador registrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login do operador
+      description: Autentica operador e retorna JWT token + configurações
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login bem-sucedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/profile:
+    get:
+      tags: [Profile]
+      summary: Obter perfil do operador
+      description: Retorna dados do operador autenticado + configurações de upload
+      operationId: getProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Perfil retornado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/confirm-email:
+    post:
+      tags: [Authentication]
+      summary: Confirmar email
+      description: Confirma email usando token recebido por email
+      operationId: confirmEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailRequest'
+      responses:
+        '200':
+          description: Email confirmado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/confirm-email/resend:
+    post:
+      tags: [Authentication]
+      summary: Reenviar email de confirmação
+      description: Envia novo email de confirmação
+      operationId: resendConfirmation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendConfirmationRequest'
+      responses:
+        '200':
+          description: Email reenviado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/change-password:
+    post:
+      tags: [Password]
+      summary: Trocar senha
+      description: Troca senha do operador autenticado
+      operationId: changePassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Senha alterada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/reset-password:
+    post:
+      tags: [Password]
+      summary: Solicitar reset de senha
+      description: Envia email com link para reset de senha
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Email de reset enviado (mensagem genérica por segurança)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/reset-password/confirm:
+    post:
+      tags: [Password]
+      summary: Confirmar reset de senha
+      description: Define nova senha usando token recebido por email
+      operationId: confirmPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Senha resetada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout do operador
+      description: Invalida sessão no servidor (token Supabase não é invalidado, mas evento é registrado)
+      operationId: logout
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Logout registrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token do Supabase (access_token)
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+        - companyName
+        - document
+        - documentType
+      properties:
+        email:
+          type: string
+          format: email
+          example: operador@empresa.com.br
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SenhaForte123
+        name:
+          type: string
+          minLength: 3
+          example: João Silva
+        companyName:
+          type: string
+          minLength: 3
+          example: Empresa LTDA
+        document:
+          type: string
+          pattern: ^\d{11,14}$
+          example: "12345678901234"
+          description: CNPJ (14 dígitos) ou CPF (11 dígitos)
+        documentType:
+          type: string
+          enum: [CNPJ, CPF]
+          example: CNPJ
+        extension:
+          type: object
+          description: Configuração opcional de extensão SIP
+          required:
+            - extensionNumber
+            - sipServer
+            - sipPort
+            - sipPassword
+          properties:
+            extensionNumber:
+              type: string
+              pattern: ^\d{3,6}$
+              example: "1001"
+            sipServer:
+              type: string
+              example: sip.empresa.com.br
+            sipPort:
+              type: integer
+              minimum: 1024
+              maximum: 65535
+              example: 5060
+            sipPassword:
+              type: string
+              format: password
+              example: senha123
+
+    RegisterResponse:
+      type: object
+      required:
+        - message
+        - defaultProjectId
+        - defaultInsightId
+        - softphoneUploadUrl
+      properties:
+        message:
+          type: string
+          example: Operador registrado com sucesso. Verifique seu email para confirmação.
+        defaultProjectId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        defaultInsightId:
+          type: string
+          format: uuid
+          example: 660e8400-e29b-41d4-a716-446655440001
+        softphoneUploadUrl:
+          type: string
+          format: uri
+          example: https://api.stage.scany.com.br/api/v1/softphone/uploads
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+        - cnpj
+      properties:
+        email:
+          type: string
+          format: email
+          example: operador@empresa.com.br
+        password:
+          type: string
+          format: password
+          example: SenhaForte123
+        cnpj:
+          type: string
+          pattern: ^\d{14}$
+          example: "12345678901234"
+
+    LoginResponse:
+      type: object
+      required:
+        - access_token
+        - user
+        - defaultProjectId
+        - defaultInsightId
+        - softphoneUploadUrl
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/Operator'
+        defaultProjectId:
+          type: string
+          format: uuid
+        defaultInsightId:
+          type: string
+          format: uuid
+        softphoneUploadUrl:
+          type: string
+          format: uri
+
+    ProfileResponse:
+      type: object
+      required:
+        - user
+        - defaultProjectId
+        - defaultInsightId
+        - softphoneUploadUrl
+      properties:
+        user:
+          $ref: '#/components/schemas/Operator'
+        defaultProjectId:
+          type: string
+          format: uuid
+        defaultInsightId:
+          type: string
+          format: uuid
+        softphoneUploadUrl:
+          type: string
+          format: uri
+
+    Operator:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - role
+        - company
+        - defaultProjectId
+        - defaultInsightId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [operator, admin, manager]
+        company:
+          $ref: '#/components/schemas/Company'
+        extension:
+          $ref: '#/components/schemas/SipExtension'
+          nullable: true
+        defaultProjectId:
+          type: string
+          format: uuid
+        defaultInsightId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Company:
+      type: object
+      required:
+        - id
+        - name
+        - document
+        - documentType
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        document:
+          type: string
+        documentType:
+          type: string
+          enum: [CNPJ, CPF]
+        createdAt:
+          type: string
+          format: date-time
+
+    SipExtension:
+      type: object
+      required:
+        - id
+        - extensionNumber
+        - sipServer
+        - sipPort
+        - encryptedPassword
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        extensionNumber:
+          type: string
+        sipServer:
+          type: string
+        sipPort:
+          type: integer
+        encryptedPassword:
+          type: string
+          description: Senha SIP criptografada (NUNCA logar ou exibir)
+        createdAt:
+          type: string
+          format: date-time
+
+    ConfirmEmailRequest:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+          description: Token recebido no link do email
+
+    ResendConfirmationRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - access_token
+        - newPassword
+      properties:
+        access_token:
+          type: string
+          description: Token recebido no link do email
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    ValidationError:
+      description: Erro de validação
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: validation_error
+            message: Dados inválidos
+            details:
+              email: Email inválido
+              password: Senha deve ter no mínimo 8 caracteres
+
+    UnauthorizedError:
+      description: Não autorizado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: unauthorized
+            message: Token inválido ou expirado
+
+    ConflictError:
+      description: Conflito (recurso já existe)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: conflict
+            message: Email já está em uso
+
+    NotFoundError:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: not_found
+            message: Usuário não encontrado
+
+    RateLimitError:
+      description: Limite de requisições excedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: rate_limit_exceeded
+            message: Muitas tentativas. Aguarde 15 minutos.
+
+    ServerError:
+      description: Erro interno do servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: internal_server_error
+            message: Ocorreu um erro inesperado

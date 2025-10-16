@@ -1,0 +1,169 @@
+openapi: 3.0.3
+info:
+  title: Scany Softphone Upload API
+  description: API de upload de gravações de chamadas
+  version: 1.0.0
+
+servers:
+  - url: https://api.stage.scany.com.br/api/v1
+    description: Staging environment
+
+paths:
+  /softphone/uploads:
+    post:
+      tags: [Uploads]
+      summary: Upload de gravação de chamada
+      description: |
+        Faz upload de arquivo de áudio e metadados de chamada.
+        Requer autenticação com Supabase access_token.
+
+        Rate limits:
+        - 100 uploads por minuto por operador
+        - Arquivo máximo: 10MB
+      operationId: uploadCall
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - audio
+                - metadata
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                  description: Arquivo de áudio (WebM, WAV, MP3)
+                metadata:
+                  type: object
+                  required:
+                    - caller
+                    - callee
+                    - startedAt
+                    - durationSeconds
+                  properties:
+                    caller:
+                      type: string
+                      pattern: ^\+?[1-9]\d{1,14}$
+                      example: "+5511999887766"
+                      description: Número do chamador (E.164 format)
+                    callee:
+                      type: string
+                      pattern: ^\+?[1-9]\d{1,14}$
+                      example: "+5511988776655"
+                      description: Número do receptor (E.164 format)
+                    startedAt:
+                      type: string
+                      format: date-time
+                      example: "2025-10-16T14:30:00Z"
+                      description: Timestamp de início (ISO 8601)
+                    durationSeconds:
+                      type: integer
+                      minimum: 0
+                      example: 125
+                      description: Duração em segundos
+                    projectId:
+                      type: string
+                      format: uuid
+                      description: ID do projeto (opcional, usa default se omitido)
+                    insightId:
+                      type: string
+                      format: uuid
+                      description: ID do insight (opcional, usa default se omitido)
+      responses:
+        '201':
+          description: Upload bem-sucedido
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - recordingId
+                  - message
+                properties:
+                  recordingId:
+                    type: string
+                    format: uuid
+                    example: 770e8400-e29b-41d4-a716-446655440002
+                  message:
+                    type: string
+                    example: Chamada enviada com sucesso
+        '400':
+          description: Validação falhou
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingFields:
+                  value:
+                    error: validation_error
+                    message: Campos obrigatórios ausentes
+                    details:
+                      caller: Campo obrigatório
+                      durationSeconds: Campo obrigatório
+                invalidFormat:
+                  value:
+                    error: validation_error
+                    message: Formato de áudio não suportado
+                    details:
+                      audio: Apenas WebM, WAV e MP3 são aceitos
+                fileTooLarge:
+                  value:
+                    error: validation_error
+                    message: Arquivo muito grande
+                    details:
+                      audio: Tamanho máximo 10MB
+        '401':
+          description: Não autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: unauthorized
+                message: Token inválido ou expirado
+        '429':
+          description: Rate limit excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: rate_limit_exceeded
+                message: Limite de uploads excedido. Tente novamente em 60 segundos
+        '500':
+          description: Erro do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: internal_server_error
+                message: Erro ao processar upload
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase access_token
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
