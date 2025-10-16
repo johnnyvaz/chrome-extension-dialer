@@ -1,12 +1,12 @@
 import * as events from "events";
 import { UA, WebSocketInterface, debug } from "jssip";
-import { DisconnectEvent } from "jssip/lib/WebSocketInterface";
 import { RTCSession } from "jssip/lib/RTCSession";
 import {
   ConnectedEvent,
   IncomingRTCSessionEvent,
   RegisteredEvent,
-  UAConnectingEvent,
+  ConnectingEvent,
+  DisconnectEvent,
   UnRegisteredEvent,
 } from "jssip/lib/UA";
 import {
@@ -36,7 +36,7 @@ export default class SipUA extends events.EventEmitter {
       register: settings.register,
       register_expires: 600,
     });
-    this.#ua.on("connecting", (data: UAConnectingEvent) =>
+    this.#ua.on("connecting", (data: ConnectingEvent) =>
       this.emit(SipConstants.UA_CONNECTING, { ...data, client })
     );
     this.#ua.on("connected", (data: ConnectedEvent) =>
