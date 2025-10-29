@@ -48,6 +48,21 @@ export const isSipClientRinging = (callStatus: string) => {
   return callStatus === SipConstants.SESSION_RINGING;
 };
 
+export const formatDocument = (value: string): string => {
+  const numbers = value.replace(/\D/g, "");
+
+  if (numbers.length <= 11) {
+    // CPF: 000.000.000-00
+    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  } else {
+    // CNPJ: 00.000.000/0000-00
+    return numbers.replace(
+      /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+      "$1.$2.$3/$4-$5"
+    );
+  }
+};
+
 export const isSipClientAnswered = (callStatus: string) => {
   return callStatus === SipConstants.SESSION_ANSWERED;
 };

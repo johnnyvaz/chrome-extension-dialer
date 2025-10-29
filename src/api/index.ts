@@ -96,6 +96,72 @@ const getAuthHeaders = () => {
   };
 };
 
+/**
+ * Get authentication headers for Supabase API
+ * Used for new authentication endpoints
+ */
+export const getSupabaseAuthHeaders = async (): Promise<Record<string, string>> => {
+  try {
+    const result = await chrome.storage.session.get('auth_token');
+    const token = result.auth_token;
+
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  } catch (error) {
+    return {
+      "Content-Type": "application/json",
+    };
+  }
+};
+
+/**
+ * Enhanced fetch transport with retry logic and better error handling
+ * for new authentication system
+ */
+export const authFetchTransport = async <T>(
+  url: string,
+  options: RequestInit
+): Promise<T> => {
+  try {
+    const response = await fetch(url, options);
+
+    // Handle 401 Unauthorized - trigger silent logout
+    if (response.status === 401) {
+      // Clear auth storage
+      await chrome.storage.session.remove(['auth_token', 'user_id', 'company_context']);
+      throw new Error('unauthorized');
+    }
+
+    // Handle other error statuses
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({
+        error: 'unknown_error',
+        message: 'An error occurred'
+      }));
+
+      const error: any = new Error(errorData.message || 'Request failed');
+      error.status = response.status;
+      error.code = errorData.error;
+      error.details = errorData.details;
+      throw error;
+    }
+
+    // Success - parse JSON response
+    return await response.json();
+  } catch (error: any) {
+    // Network errors
+    if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+      const netError: any = new Error('Erro de conexão. Verifique sua internet.');
+      netError.isNetworkError = true;
+      throw netError;
+    }
+
+    throw error;
+  }
+};
+
 export const getFetch = <Type>(url: string) => {
   return fetchTransport<Type>(url, {
     headers: getAuthHeaders(),

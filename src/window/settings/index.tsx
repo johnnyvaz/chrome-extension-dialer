@@ -85,9 +85,9 @@ export const Settings = () => {
               {btnIsDisabled && <Text>Limit has been reached</Text>}
             </Center>
           </TabPanel>
-          <TabPanel p={0}>
+          {/* <TabPanel p={0}>
             <AuditoriaConfigComponent />
-          </TabPanel>
+          </TabPanel> */}
         </TabPanels>
       </Tabs>
     </div>

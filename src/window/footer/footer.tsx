@@ -66,7 +66,7 @@ function Footer({
               onHandleGoOffline(v ? "registered" : "unregistered");
             }}
           />
-          <Text>You are {isOnline ? "online" : "offline"}</Text>
+          <Text>Você está {isOnline ? "online" : "offline"}</Text>
         </HStack>
       ) : (
         <span></span>

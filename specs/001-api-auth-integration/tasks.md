@@ -19,22 +19,26 @@ Este documento contém a decomposição completa de tarefas para implementação
 ### MVP First Approach
 
 **MVP = User Stories 1, 2, 3** (P1):
+
 - US1: Operator Registration → Permite criar contas
 - US2: Email Confirmation → Valida contas
 - US3: Login + SIP Config → Acesso ao softphone
 - US7: Call Upload → Core business value
 
 **Post-MVP** (P2):
+
 - US4: Profile Management
 - US5: Password Change
 - US6: Password Reset
 
 **Polish** (P3):
+
 - US8: Secure Logout
 
 ### Independent Testing
 
 Cada User Story pode ser testado independentemente:
+
 - **US1**: Registrar → Verificar email enviado
 - **US2**: Confirmar → Account ativado
 - **US3**: Login → Token válido + SIP configurado
@@ -63,6 +67,7 @@ Phase 1: Setup
 ```
 
 **Dependencies**:
+
 - US2 depends on US1 (email confirmation needs registration)
 - US3 depends on US2 (login needs confirmed email)
 - US7 depends on US3 (upload needs authenticated session)
@@ -77,16 +82,16 @@ Phase 1: Setup
 
 ### Tasks
 
-- [ ] T001 Create API client base structure in `src/api/index.ts` with common headers and error handling
-- [ ] T002 Create constants file in `src/api/constants.ts` with API_BASE_URL and endpoints
-- [ ] T003 Create error types in `src/common/types.ts` (ApiError, NetworkError, ValidationError classes)
-- [ ] T004 [P] Create retry utility with exponential backoff in `src/utils/retry.ts`
-- [ ] T005 [P] Create CNPJ validation function in `src/utils/validation.ts`
-- [ ] T006 [P] Create email validation function in `src/utils/validation.ts`
-- [ ] T007 [P] Create phone number validation function in `src/utils/validation.ts`
-- [ ] T008 Create storage keys constants in `src/common/constants.ts` (STORAGE_KEYS object)
-- [ ] T009 Initialize IndexedDB for audio storage in `src/storage/audioStorage.ts`
-- [ ] T010 Create error message mapping in `src/common/constants.ts` (ERROR_MESSAGES object in Portuguese)
+- [x] T001 Create API client base structure in `src/api/index.ts` with common headers and error handling
+- [x] T002 Create constants file in `src/api/constants.ts` with API_BASE_URL and endpoints
+- [x] T003 Create error types in `src/common/types.ts` (ApiError, NetworkError, ValidationError classes)
+- [x] T004 [P] Create retry utility with exponential backoff in `src/utils/retry.ts`
+- [x] T005 [P] Create CNPJ validation function in `src/utils/validation.ts`
+- [x] T006 [P] Create email validation function in `src/utils/validation.ts`
+- [x] T007 [P] Create phone number validation function in `src/utils/validation.ts`
+- [x] T008 Create storage keys constants in `src/common/constants.ts` (STORAGE_KEYS object)
+- [x] T009 Initialize IndexedDB for audio storage in `src/storage/audioStorage.ts`
+- [x] T010 Create error message mapping in `src/common/constants.ts` (ERROR_MESSAGES object in Portuguese)
 
 ---
 
@@ -98,12 +103,12 @@ Phase 1: Setup
 
 ### Tasks
 
-- [ ] T011 Implement auth storage layer in `src/storage/authStorage.ts` (saveToken, getToken, clearToken for chrome.storage.session)
-- [ ] T012 Implement upload config storage in `src/storage/authStorage.ts` (saveUploadConfig, getUploadConfig for chrome.storage.local)
-- [ ] T013 Create AuthContext provider in `src/window/auth/AuthContext.tsx` with state (isAuthenticated, user, uploadConfig)
-- [ ] T014 Add AuthContext.Provider to `src/window/App.tsx` wrapping entire app
-- [ ] T015 Create useAuth hook in `src/window/auth/AuthContext.tsx` for consuming context
-- [ ] T016 Implement conditional rendering in `src/window/App.tsx` (show auth screens vs main app based on isAuthenticated)
+- [x] T011 Implement auth storage layer in `src/storage/authStorage.ts` (saveToken, getToken, clearToken for chrome.storage.session)
+- [x] T012 Implement upload config storage in `src/storage/authStorage.ts` (saveUploadConfig, getUploadConfig for chrome.storage.local)
+- [x] T013 Create AuthContext provider in `src/window/auth/AuthContext.tsx` with state (isAuthenticated, user, uploadConfig)
+- [x] T014 Add AuthContext.Provider to `src/window/App.tsx` wrapping entire app
+- [x] T015 Create useAuth hook in `src/window/auth/AuthContext.tsx` for consuming context
+- [x] T016 Implement conditional rendering in `src/window/App.tsx` (show auth screens vs main app based on isAuthenticated)
 
 ---
 
@@ -114,6 +119,7 @@ Phase 1: Setup
 **Independent Test**: Register with valid data → Verify account created + confirmation email sent
 
 **Success Criteria**:
+
 - Form validates CNPJ format (14 digits)
 - Form validates email format
 - Success message displayed with email instructions
@@ -123,32 +129,32 @@ Phase 1: Setup
 
 #### Data Layer
 
-- [ ] T017 [P] [US1] Create RegisterRequest type in `src/api/types.ts`
-- [ ] T018 [P] [US1] Create RegisterResponse type in `src/api/types.ts`
-- [ ] T019 [P] [US1] Create Operator interface in `src/common/types.ts`
-- [ ] T020 [P] [US1] Create Company interface in `src/common/types.ts`
-- [ ] T021 [P] [US1] Create SipExtension interface in `src/common/types.ts`
+- [x] T017 [P] [US1] Create RegisterRequest type in `src/api/types.ts`
+- [x] T018 [P] [US1] Create RegisterResponse type in `src/api/types.ts`
+- [x] T019 [P] [US1] Create Operator interface in `src/common/types.ts`
+- [x] T020 [P] [US1] Create Company interface in `src/common/types.ts`
+- [x] T021 [P] [US1] Create SipExtension interface in `src/common/types.ts`
 
 #### API Client
 
-- [ ] T022 [US1] Implement register API function in `src/api/authApi.ts` (POST /auth/register)
-- [ ] T023 [US1] Add error handling for 400 (validation), 409 (conflict), 500 in register function
+- [x] T022 [US1] Implement register API function in `src/api/authApi.ts` (POST /auth/register)
+- [x] T023 [US1] Add error handling for 400 (validation), 409 (conflict), 500 in register function
 
 #### UI Components
 
-- [ ] T024 [US1] Create RegisterForm component in `src/window/auth/RegisterForm.tsx` with Chakra UI
-- [ ] T025 [US1] Add form fields in RegisterForm: email, password, name, companyName, document (CNPJ/CPF)
-- [ ] T026 [US1] Add optional SIP fields section in RegisterForm (collapsible): extensionNumber, sipServer, sipPort, sipPassword
-- [ ] T027 [US1] Integrate Yup validation schema in RegisterForm with CNPJ/email validators
-- [ ] T028 [US1] Implement form submission handler in RegisterForm calling authApi.register()
-- [ ] T029 [US1] Display success message in RegisterForm with "Verifique seu email" instruction
-- [ ] T030 [US1] Display validation errors from backend in RegisterForm (field-specific messages)
-- [ ] T031 [US1] Add loading state and disable submit button during registration in RegisterForm
+- [x] T024 [US1] Create RegisterForm component in `src/window/auth/RegisterForm.tsx` with Chakra UI
+- [x] T025 [US1] Add form fields in RegisterForm: email, password, name, companyName, document (CNPJ/CPF)
+- [x] T026 [US1] Add optional SIP fields section in RegisterForm (collapsible): extensionNumber, sipServer, sipPort, sipPassword
+- [x] T027 [US1] Integrate Yup validation schema in RegisterForm with CNPJ/email validators
+- [x] T028 [US1] Implement form submission handler in RegisterForm calling authApi.register()
+- [x] T029 [US1] Display success message in RegisterForm with "Verifique seu email" instruction
+- [x] T030 [US1] Display validation errors from backend in RegisterForm (field-specific messages)
+- [x] T031 [US1] Add loading state and disable submit button during registration in RegisterForm
 
 #### Integration
 
-- [ ] T032 [US1] Add RegisterForm to auth view routing in `src/window/App.tsx`
-- [ ] T033 [US1] Add "Criar Conta" link from LoginForm to RegisterForm navigation
+- [x] T032 [US1] Add RegisterForm to auth view routing in `src/window/App.tsx`
+- [x] T033 [US1] Add "Criar Conta" link from LoginForm to RegisterForm navigation
 
 ---
 
@@ -159,6 +165,7 @@ Phase 1: Setup
 **Independent Test**: Click confirmation link → Account status changes to confirmed
 
 **Success Criteria**:
+
 - Confirmation link successfully activates account
 - Resend confirmation works with rate limiting
 - Expired token shows error with resend option
@@ -168,29 +175,29 @@ Phase 1: Setup
 
 #### Data Layer
 
-- [ ] T034 [P] [US2] Create ConfirmEmailRequest type in `src/api/types.ts`
-- [ ] T035 [P] [US2] Create ResendConfirmationRequest type in `src/api/types.ts`
+- [x] T034 [P] [US2] Create ConfirmEmailRequest type in `src/api/types.ts`
+- [x] T035 [P] [US2] Create ResendConfirmationRequest type in `src/api/types.ts`
 
 #### API Client
 
-- [ ] T036 [US2] Implement confirmEmail API function in `src/api/authApi.ts` (POST /auth/confirm-email)
-- [ ] T037 [US2] Implement resendConfirmation API function in `src/api/authApi.ts` (POST /auth/confirm-email/resend)
-- [ ] T038 [US2] Add error handling for 400, 404, 429 in confirmEmail function
+- [x] T036 [US2] Implement confirmEmail API function in `src/api/authApi.ts` (POST /auth/confirm-email)
+- [x] T037 [US2] Implement resendConfirmation API function in `src/api/authApi.ts` (POST /auth/confirm-email/resend)
+- [x] T038 [US2] Add error handling for 400, 404, 429 in confirmEmail function
 
 #### UI Components
 
-- [ ] T039 [US2] Create EmailConfirmation component in `src/window/auth/EmailConfirmation.tsx`
-- [ ] T040 [US2] Extract access_token from URL query parameters in EmailConfirmation component
-- [ ] T041 [US2] Auto-submit confirmation on component mount in EmailConfirmation
-- [ ] T042 [US2] Display success message and redirect to login after confirmation
-- [ ] T043 [US2] Display error message for expired/invalid tokens with resend button
-- [ ] T044 [US2] Implement resend confirmation handler with email input in EmailConfirmation
-- [ ] T045 [US2] Handle 429 rate limit error with cooldown message in EmailConfirmation
+- [x] T039 [US2] Create EmailConfirmation component in `src/window/auth/EmailConfirmation.tsx`
+- [x] T040 [US2] Extract access_token from URL query parameters in EmailConfirmation component
+- [x] T041 [US2] Auto-submit confirmation on component mount in EmailConfirmation
+- [x] T042 [US2] Display success message and redirect to login after confirmation
+- [x] T043 [US2] Display error message for expired/invalid tokens with resend button
+- [x] T044 [US2] Implement resend confirmation handler with email input in EmailConfirmation
+- [x] T045 [US2] Handle 429 rate limit error with cooldown message in EmailConfirmation
 
 #### Integration
 
-- [ ] T046 [US2] Add EmailConfirmation to auth view routing in `src/window/App.tsx`
-- [ ] T047 [US2] Add "Reenviar email de confirmação" link in LoginForm for unconfirmed users
+- [x] T046 [US2] Add EmailConfirmation to auth view routing in `src/window/App.tsx`
+- [x] T047 [US2] Add "Reenviar email de confirmação" link in LoginForm for unconfirmed users
 
 ---
 
@@ -201,6 +208,7 @@ Phase 1: Setup
 **Independent Test**: Login with valid credentials → Token stored + SIP extension configured
 
 **Success Criteria**:
+
 - JWT token stored in chrome.storage.session
 - SIP extension auto-configured from response
 - Rate limiting enforced (5 attempts per 15 min)
@@ -211,41 +219,41 @@ Phase 1: Setup
 
 #### Data Layer
 
-- [ ] T048 [P] [US3] Create LoginRequest type in `src/api/types.ts`
-- [ ] T049 [P] [US3] Create LoginResponse type in `src/api/types.ts`
-- [ ] T050 [P] [US3] Create ProfileResponse type in `src/api/types.ts`
-- [ ] T051 [P] [US3] Create AuthSession interface in `src/common/types.ts`
+- [x] T048 [P] [US3] Create LoginRequest type in `src/api/types.ts`
+- [x] T049 [P] [US3] Create LoginResponse type in `src/api/types.ts`
+- [x] T050 [P] [US3] Create ProfileResponse type in `src/api/types.ts`
+- [x] T051 [P] [US3] Create AuthSession interface in `src/common/types.ts`
 
 #### API Client
 
-- [ ] T052 [US3] Implement login API function in `src/api/authApi.ts` (POST /auth/login)
-- [ ] T053 [US3] Implement getProfile API function in `src/api/authApi.ts` (GET /auth/profile with Authorization header)
-- [ ] T054 [US3] Add error handling for 401, 429 in login function
+- [x] T052 [US3] Implement login API function in `src/api/authApi.ts` (POST /auth/login)
+- [x] T053 [US3] Implement getProfile API function in `src/api/authApi.ts` (GET /auth/profile with Authorization header)
+- [x] T054 [US3] Add error handling for 401, 429 in login function
 
 #### Service Layer
 
-- [ ] T055 [US3] Create AuthService class in `src/services/authService.ts`
-- [ ] T056 [US3] Implement AuthService.login() method: call API + store token + store upload config + update context
-- [ ] T057 [US3] Implement AuthService.init() method: load token + validate with getProfile + handle 401 silent logout
-- [ ] T058 [US3] Implement AuthService.silentLogout() method: clear storage + update context
-- [ ] T059 [US3] Implement SIP configuration in AuthService.login(): extract extension data from response + configure SipUA
+- [x] T055 [US3] Create AuthService class in `src/services/authService.ts`
+- [x] T056 [US3] Implement AuthService.login() method: call API + store token + store upload config + update context
+- [x] T057 [US3] Implement AuthService.init() method: load token + validate with getProfile + handle 401 silent logout
+- [x] T058 [US3] Implement AuthService.silentLogout() method: clear storage + update context
+- [x] T059 [US3] Implement SIP configuration in AuthService.login(): extract extension data from response + configure SipUA
 
 #### UI Components
 
-- [ ] T060 [US3] Create LoginForm component in `src/window/auth/LoginForm.tsx` with Chakra UI
-- [ ] T061 [US3] Add form fields in LoginForm: email, password, CNPJ
-- [ ] T062 [US3] Integrate validation in LoginForm (email format, CNPJ format)
-- [ ] T063 [US3] Implement form submission handler in LoginForm calling AuthService.login()
-- [ ] T064 [US3] Display loading state during login in LoginForm
-- [ ] T065 [US3] Display error messages in LoginForm (invalid credentials, rate limit, unconfirmed email)
-- [ ] T066 [US3] Add "Esqueci minha senha" link in LoginForm
-- [ ] T067 [US3] Add "Criar conta" link in LoginForm
+- [x] T060 [US3] Create LoginForm component in `src/window/auth/LoginForm.tsx` with Chakra UI
+- [x] T061 [US3] Add form fields in LoginForm: email, password, CNPJ
+- [x] T062 [US3] Integrate validation in LoginForm (email format, CNPJ format)
+- [x] T063 [US3] Implement form submission handler in LoginForm calling AuthService.login()
+- [x] T064 [US3] Display loading state during login in LoginForm
+- [x] T065 [US3] Display error messages in LoginForm (invalid credentials, rate limit, unconfirmed email)
+- [x] T066 [US3] Add "Esqueci minha senha" link in LoginForm
+- [x] T067 [US3] Add "Criar conta" link in LoginForm
 
 #### Integration
 
-- [ ] T068 [US3] Call AuthService.init() in App.tsx useEffect on mount
-- [ ] T069 [US3] Integrate with existing SipUA in `src/lib/SipUA.ts`: use extension data from AuthService
-- [ ] T070 [US3] Add 401 response interceptor globally to trigger silentLogout
+- [x] T068 [US3] Call AuthService.init() in App.tsx useEffect on mount
+- [x] T069 [US3] Integrate with existing SipUA in `src/lib/SipUA.ts`: use extension data from AuthService
+- [x] T070 [US3] Add 401 response interceptor globally to trigger silentLogout
 
 ---
 
@@ -256,6 +264,7 @@ Phase 1: Setup
 **Independent Test**: Complete call → Audio file + metadata uploaded successfully
 
 **Success Criteria**:
+
 - Audio recorded in WebM Opus format
 - Metadata includes all required fields (caller, callee, timestamps, duration)
 - Retry queue handles network failures (3 attempts with backoff)
@@ -266,50 +275,50 @@ Phase 1: Setup
 
 #### Data Layer
 
-- [ ] T071 [P] [US7] Create CallRecording interface in `src/common/types.ts`
-- [ ] T072 [P] [US7] Create UploadQueueItem interface in `src/common/types.ts`
-- [ ] T073 [P] [US7] Create UploadConfig interface in `src/common/types.ts`
-- [ ] T074 [P] [US7] Create UploadCallPayload type in `src/api/types.ts`
-- [ ] T075 [P] [US7] Create UploadCallResponse type in `src/api/types.ts`
+- [x] T071 [P] [US7] Create CallRecording interface in `src/common/types.ts`
+- [x] T072 [P] [US7] Create UploadQueueItem interface in `src/common/types.ts`
+- [x] T073 [P] [US7] Create UploadConfig interface in `src/common/types.ts`
+- [x] T074 [P] [US7] Create UploadCallPayload type in `src/api/types.ts`
+- [x] T075 [P] [US7] Create UploadCallResponse type in `src/api/types.ts`
 
 #### API Client
 
-- [ ] T076 [US7] Implement uploadCall API function in `src/api/uploadApi.ts` (POST /softphone/uploads with multipart/form-data)
-- [ ] T077 [US7] Add Authorization header (Bearer token) in uploadCall function
-- [ ] T078 [US7] Add error handling for 400, 401, 429, 500 in uploadCall function
+- [x] T076 [US7] Implement uploadCall API function in `src/api/uploadApi.ts` (POST /softphone/uploads with multipart/form-data)
+- [x] T077 [US7] Add Authorization header (Bearer token) in uploadCall function
+- [x] T078 [US7] Add error handling for 400, 401, 429, 500 in uploadCall function
 
 #### Storage Layer
 
-- [ ] T079 [US7] Implement upload queue storage in `src/storage/uploadQueue.ts` (save/load queue from chrome.storage.local)
-- [ ] T080 [US7] Implement audio storage in `src/storage/audioStorage.ts` (save/load audio blobs in IndexedDB)
+- [x] T079 [US7] Implement upload queue storage in `src/storage/uploadQueue.ts` (save/load queue from chrome.storage.local)
+- [x] T080 [US7] Implement audio storage in `src/storage/audioStorage.ts` (save/load audio blobs in IndexedDB)
 
 #### Service Layer
 
-- [ ] T081 [US7] Create UploadService class in `src/services/uploadService.ts`
-- [ ] T082 [US7] Implement UploadService.enqueue() method: save recording to IndexedDB + add to queue
-- [ ] T083 [US7] Implement UploadService.processNext() method: get pending item + retry logic with exponential backoff
-- [ ] T084 [US7] Implement UploadService.upload() method: load audio from IndexedDB + call uploadApi + handle errors
-- [ ] T085 [US7] Add retry logic in processNext: max 3 attempts, backoff (1s, 2s, 4s), mark failed after max retries
+- [x] T081 [US7] Create UploadService class in `src/services/uploadService.ts`
+- [x] T082 [US7] Implement UploadService.enqueue() method: save recording to IndexedDB + add to queue
+- [x] T083 [US7] Implement UploadService.processNext() method: get pending item + retry logic with exponential backoff
+- [x] T084 [US7] Implement UploadService.upload() method: load audio from IndexedDB + call uploadApi + handle errors
+- [x] T085 [US7] Add retry logic in processNext: max 3 attempts, backoff (1s, 2s, 4s), mark failed after max retries
 
 #### Recording Integration
 
-- [ ] T086 [US7] Add recording start in `src/lib/SipSession.ts`: capture MediaRecorder from RTCPeerConnection
-- [ ] T087 [US7] Configure MediaRecorder in SipSession: WebM Opus codec, 32kbps bitrate
-- [ ] T088 [US7] Add recording stop in SipSession: get audio blob on call end
-- [ ] T089 [US7] Trigger UploadService.enqueue() in SipSession on call end with recording data
+- [x] T086 [US7] Add recording start in `src/lib/SipSession.ts`: capture MediaRecorder from RTCPeerConnection
+- [x] T087 [US7] Configure MediaRecorder in SipSession: WebM Opus codec, 32kbps bitrate
+- [x] T088 [US7] Add recording stop in SipSession: get audio blob on call end
+- [x] T089 [US7] Trigger UploadService.enqueue() in SipSession on call end with recording data
 
 #### Background Worker
 
-- [ ] T090 [US7] Create background worker listener in `src/background/index.ts` for PROCESS_UPLOAD_QUEUE message
-- [ ] T091 [US7] Create chrome.alarms schedule in background worker: PROCESS_UPLOAD_QUEUE every 30 seconds
-- [ ] T092 [US7] Implement queue processing loop in background worker: call UploadService.processNext() until empty
-- [ ] T093 [US7] Add alarm listener in background worker to trigger queue processing
+- [x] T090 [US7] Create background worker listener in `src/background/index.ts` for PROCESS_UPLOAD_QUEUE message
+- [x] T091 [US7] Create chrome.alarms schedule in background worker: PROCESS_UPLOAD_QUEUE every 30 seconds
+- [x] T092 [US7] Implement queue processing loop in background worker: call UploadService.processNext() until empty
+- [x] T093 [US7] Add alarm listener in background worker to trigger queue processing
 
 #### UI Indicators
 
-- [ ] T094 [US7] Add upload status indicator in `src/window/phone/index.tsx`: show pending/uploading/failed counts
-- [ ] T095 [US7] Display manual retry button in phone UI when failed uploads exist
-- [ ] T096 [US7] Handle missing extension warning in phone UI: show banner when extension data null in login response
+- [x] T094 [US7] Add upload status indicator in `src/window/phone/index.tsx`: show pending/uploading/failed counts
+- [x] T095 [US7] Display manual retry button in phone UI when failed uploads exist
+- [x] T096 [US7] Handle missing extension warning in phone UI: show banner when extension data null in login response
 
 ---
 
@@ -320,6 +329,7 @@ Phase 1: Setup
 **Independent Test**: Login → Access profile → See user data + extension details
 
 **Success Criteria**:
+
 - Profile shows all operator data (name, email, role, company)
 - Extension details visible (number, server, port)
 - Password never displayed
@@ -349,6 +359,7 @@ Phase 1: Setup
 **Independent Test**: Login → Change password → Logout + Login with new password succeeds
 
 **Success Criteria**:
+
 - Current password validated before change
 - New password meets requirements
 - Success confirmation displayed
@@ -389,6 +400,7 @@ Phase 1: Setup
 **Independent Test**: Request reset → Click email link → Set new password → Login succeeds
 
 **Success Criteria**:
+
 - Reset email sent (generic message for security)
 - Reset link validates token
 - Expired token shows error with retry option
@@ -437,6 +449,7 @@ Phase 1: Setup
 **Independent Test**: Login → Logout → Verify token removed + cannot access protected features
 
 **Success Criteria**:
+
 - Server session terminated
 - Local token cleared
 - SIP configuration cleared
@@ -519,6 +532,7 @@ Phase 1: Setup
 Most tasks within the same phase can be parallelized if they touch different files:
 
 **Example - US1 (Registration)**:
+
 ```
 Parallel Set 1 (Data Layer):
 ├── T017 [P] Create RegisterRequest type
@@ -537,6 +551,7 @@ Sequential: T032-T033 (Integration) → needs completed components
 ```
 
 **Example - US7 (Upload)**:
+
 ```
 Parallel Set 1 (Data + API):
 ├── T071-T075 [P] Create types/interfaces

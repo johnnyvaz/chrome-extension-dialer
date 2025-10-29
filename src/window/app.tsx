@@ -6,6 +6,8 @@ import {
   TabPanels,
   Tabs,
   Grid,
+  Center,
+  Spinner,
 } from "@chakra-ui/react";
 import Phone from "./phone";
 import Settings from "./settings";
@@ -16,8 +18,11 @@ import { getActiveSettings, getCallHistories, getSettings } from "src/storage";
 import CallHistories from "./history";
 import { CallHistory, IAppSettings, SipClientStatus } from "src/common/types";
 import Footer from "./footer/footer";
+import { useAuth } from "./auth/AuthContext";
+import AuthScreen from "./auth/AuthScreen";
 
 export const WindowApp = () => {
+  const { isAuthenticated, loading } = useAuth();
   const [sipDomain, setSipDomain] = useState("");
   const [sipUsername, setSipUsername] = useState("");
   const [sipServerAddress, setSipServerAddress] = useState("");
@@ -116,6 +121,22 @@ export const WindowApp = () => {
     setTabIndex(i);
     setCallHistories(getCallHistories(sipUsername));
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <Center h="100vh">
+        <Spinner size="xl" color="jambonz.500" />
+      </Center>
+    );
+  }
+
+  // Not authenticated - show auth screens
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
+  // Authenticated - show main app
   return (
     <Grid h="100vh" templateRows="1fr auto">
       <Box p={2}>

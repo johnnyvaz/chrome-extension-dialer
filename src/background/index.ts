@@ -44,4 +44,61 @@ const getWindowKey = async (): Promise<number> => {
   return result.WindowKey as number;
 };
 
+/**
+ * Upload queue processing
+ */
+const UPLOAD_QUEUE_ALARM = "PROCESS_UPLOAD_QUEUE";
+const UPLOAD_QUEUE_INTERVAL_MINUTES = 0.5; // 30 segundos
+
+async function processUploadQueue() {
+  try {
+    // Importação dinâmica para evitar problemas de build
+    const { uploadService } = await import("../services/uploadService");
+    await uploadService.processQueue();
+  } catch (error) {
+    console.error("Erro ao processar fila de upload:", error);
+  }
+}
+
+// Inicializa sistema de upload apenas se chrome.alarms está disponível
+if (typeof chrome !== "undefined" && chrome.alarms) {
+  // Cria alarm para processar fila de upload periodicamente
+  chrome.runtime.onInstalled.addListener(() => {
+    chrome.alarms.create(UPLOAD_QUEUE_ALARM, {
+      periodInMinutes: UPLOAD_QUEUE_INTERVAL_MINUTES,
+    });
+    console.log("Upload queue alarm criado");
+  });
+
+  // Listener para alarm de processamento de fila
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === UPLOAD_QUEUE_ALARM) {
+      console.log("Processando fila de upload (alarm)");
+      processUploadQueue();
+    }
+  });
+}
+
+// Listener para mensagens de processamento de fila (sempre disponível)
+if (
+  typeof chrome !== "undefined" &&
+  chrome.runtime &&
+  chrome.runtime.onMessage
+) {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "PROCESS_UPLOAD_QUEUE") {
+      console.log("Processando fila de upload (message)");
+      processUploadQueue()
+        .then(() => {
+          sendResponse({ success: true });
+        })
+        .catch((error) => {
+          console.error("Erro ao processar fila:", error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; // Indica resposta assíncrona
+    }
+  });
+}
+
 export {};

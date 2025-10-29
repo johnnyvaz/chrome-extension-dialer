@@ -28,3 +28,25 @@ yarn-error.log*
 
 # Claude Code settings (local only)
 .claude/
+
+# Environment variables
+.env*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+.cache/

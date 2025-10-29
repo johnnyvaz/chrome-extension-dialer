@@ -20,6 +20,9 @@ export default class SipSession extends events.EventEmitter {
   #audio: SipAudioElements;
   #rtcSession: RTCSession;
   #active: boolean;
+  #mediaRecorder: MediaRecorder | null = null;
+  #recordedChunks: Blob[] = [];
+  #callStartTime: string | null = null;
 
   constructor(
     rtcSession: RTCSession,
@@ -69,23 +72,28 @@ export default class SipSession extends events.EventEmitter {
         const callSid = response?.hasHeader("X-Call-Sid")
           ? response.getHeader("X-Call-Sid")
           : null;
-        
+
         this.emit(SipConstants.SESSION_ANSWERED, {
           status: SipConstants.SESSION_ANSWERED,
           callSid,
         });
         this.#audio.playAnswer(undefined);
 
+        // Marca início da chamada
+        this.#callStartTime = new Date().toISOString();
+
+        // Inicia gravação
+        this.startRecording();
+
         // Iniciar tracking de auditoria
         if (auditoriaService.isEnabled()) {
-          const direction = this.direction === 'incoming' ? 'inbound' : 'outbound';
-          auditoriaService.startCallTracking(
-            this.#id,
-            this.user,
-            direction
-          ).catch(error => {
-            console.error('Erro ao iniciar tracking de auditoria:', error);
-          });
+          const direction =
+            this.direction === "incoming" ? "inbound" : "outbound";
+          auditoriaService
+            .startCallTracking(this.#id, this.user, direction)
+            .catch((error) => {
+              console.error("Erro ao iniciar tracking de auditoria:", error);
+            });
         }
       }
     );
@@ -135,11 +143,14 @@ export default class SipSession extends events.EventEmitter {
           description = `${reason.cause}`.trim();
         }
       }
-      
+
+      // Para gravação e enfileira upload
+      this.stopRecording();
+
       // Finalizar tracking de auditoria
       if (auditoriaService.isEnabled()) {
-        auditoriaService.endCallTracking(this.#id).catch(error => {
-          console.error('Erro ao finalizar tracking de auditoria:', error);
+        auditoriaService.endCallTracking(this.#id).catch((error) => {
+          console.error("Erro ao finalizar tracking de auditoria:", error);
         });
       }
 
@@ -330,5 +341,128 @@ export default class SipSession extends events.EventEmitter {
 
   sendDtmf(tone: number | string): void {
     this.#rtcSession.sendDTMF(tone, { transportType: DTMF_TRANSPORT.RFC2833 });
+  }
+
+  /**
+   * Inicia gravação de áudio da chamada
+   */
+  startRecording(): void {
+    try {
+      const pc = this.#rtcSession.connection;
+      if (!pc) {
+        console.warn("PeerConnection não disponível para gravação");
+        return;
+      }
+
+      // Obtém stream de áudio do peer connection
+      const receivers = pc.getReceivers();
+      const audioReceiver = receivers.find((r) => r.track.kind === "audio");
+
+      if (!audioReceiver) {
+        console.warn("Nenhum track de áudio encontrado para gravar");
+        return;
+      }
+
+      const stream = new MediaStream([audioReceiver.track]);
+
+      // Configura MediaRecorder com codec WebM Opus
+      const options = {
+        mimeType: "audio/webm;codecs=opus",
+        audioBitsPerSecond: 32000, // 32kbps
+      };
+
+      this.#mediaRecorder = new MediaRecorder(stream, options);
+      this.#recordedChunks = [];
+
+      this.#mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.#recordedChunks.push(event.data);
+        }
+      };
+
+      this.#mediaRecorder.onstop = async () => {
+        await this.handleRecordingComplete();
+      };
+
+      this.#mediaRecorder.start(1000); // Captura chunks a cada 1 segundo
+      console.log("Gravação iniciada");
+    } catch (error) {
+      console.error("Erro ao iniciar gravação:", error);
+    }
+  }
+
+  /**
+   * Para gravação de áudio
+   */
+  stopRecording(): void {
+    if (this.#mediaRecorder && this.#mediaRecorder.state !== "inactive") {
+      this.#mediaRecorder.stop();
+      console.log("Gravação parada");
+    }
+  }
+
+  /**
+   * Processa gravação completa e enfileira para upload
+   */
+  async handleRecordingComplete(): Promise<void> {
+    try {
+      if (this.#recordedChunks.length === 0) {
+        console.warn("Nenhum chunk gravado");
+        return;
+      }
+
+      // Cria blob de áudio
+      const audioBlob = new Blob(this.#recordedChunks, { type: "audio/webm" });
+
+      // Calcula duração da chamada
+      const now = new Date();
+      const startTime = this.#callStartTime
+        ? new Date(this.#callStartTime)
+        : now;
+      const durationSeconds = Math.floor(
+        (now.getTime() - startTime.getTime()) / 1000
+      );
+
+      // Obtém upload config do storage
+      const { getUploadConfig } = await import("../storage/authStorage");
+      const uploadConfig = await getUploadConfig();
+
+      if (!uploadConfig) {
+        console.warn(
+          "Upload config não disponível - gravação não será enviada"
+        );
+        return;
+      }
+
+      // Cria objeto de gravação
+      const recording = {
+        id: this.#id,
+        caller: this.direction === "incoming" ? this.user : "unknown",
+        callee: this.direction === "outgoing" ? this.user : "unknown",
+        startedAt: this.#callStartTime || now.toISOString(),
+        durationSeconds,
+        audioBlob,
+        audioSizeBytes: audioBlob.size,
+        projectId: uploadConfig.projectId,
+        insightId: uploadConfig.insightId,
+        uploadStatus: "pending" as const,
+        createdAt: Date.now(),
+      };
+
+      // Enfileira para upload
+      const { uploadService } = await import("../services/uploadService");
+      await uploadService.enqueue(recording);
+
+      console.log("Gravação enfileirada para upload:", {
+        id: recording.id,
+        size: audioBlob.size,
+        duration: durationSeconds,
+      });
+
+      // Limpa chunks
+      this.#recordedChunks = [];
+    } catch (error) {
+      console.error("Erro ao processar gravação:", error);
+    }
   }
 }
