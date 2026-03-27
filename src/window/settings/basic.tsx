@@ -86,7 +86,7 @@ export const BasicSettings = () => {
           p={0}
         >
           <FormControl id="jambonz_sip_domain">
-            <FormLabel>Scany SIP Domain</FormLabel>
+            <FormLabel>Vendas IA SIP Domain</FormLabel>
             <Input
               type="text"
               placeholder="Domain"
@@ -97,7 +97,7 @@ export const BasicSettings = () => {
           </FormControl>
 
           <FormControl id="jambonz_server_address">
-            <FormLabel>Scany Server Address</FormLabel>
+            <FormLabel>Vendas IA Server Address</FormLabel>
             <Input
               type="text"
               placeholder="wss://192.168.1.126:8089/ws"

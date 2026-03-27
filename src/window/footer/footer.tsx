@@ -1,5 +1,5 @@
 import { HStack, Image, Text } from "@chakra-ui/react";
-import logoScany from "src/imgs/logo.png";
+import logoVendasIA from "src/imgs/logo.png";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { SipClientStatus } from "src/common/types";
 import JambonzSwitch from "src/components/switch";
@@ -78,7 +78,7 @@ function Footer({
         flexWrap={"wrap"}
       >
         <Text fontSize="14px">Criado por</Text>
-        <Image src={logoScany} alt="Scany Logo" w="91px" h="31px" />
+        <Image src={logoVendasIA} alt="Vendas IA Logo" w="91px" h="31px" />
       </HStack>
     </HStack>
   );

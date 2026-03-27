@@ -91,7 +91,7 @@ export const AdvancedSettings = () => {
           p={0}
         >
           <FormControl id="jambonz_api_server">
-            <FormLabel>Scany API Server Base URL</FormLabel>
+            <FormLabel>Vendas IA API Server Base URL</FormLabel>
             <Input
               type="text"
               placeholder="https://jambonz.cloud/api"
@@ -100,7 +100,7 @@ export const AdvancedSettings = () => {
             />
           </FormControl>
           <FormControl id="jambonz_account_sid">
-            <FormLabel>Scany Account Sid</FormLabel>
+            <FormLabel>Vendas IA Account Sid</FormLabel>
             <Input
               type="text"
               value={accountSid}

@@ -178,7 +178,7 @@ function AccountForm({
             />
           </FormControl>
           <FormControl id={`jambonz_sip_domain${inputUniqueId}`}>
-            <FormLabel>Scany SIP Domain</FormLabel>
+            <FormLabel>Vendas IA SIP Domain</FormLabel>
             <Input
               type="text"
               placeholder="Domain"
@@ -189,7 +189,7 @@ function AccountForm({
           </FormControl>
 
           <FormControl id={`jambonz_server_address${inputUniqueId}`}>
-            <FormLabel>Scany Server Address</FormLabel>
+            <FormLabel>Vendas IA Server Address</FormLabel>
             <Input
               type="text"
               placeholder="wss://192.168.1.126:8089/ws"
@@ -221,7 +221,7 @@ function AccountForm({
             <AnimateOnShow>
               <VStack w={"full"} bg={"gray.50"} borderRadius={"2xl"} p={"3.5"}>
                 <FormControl id={`jambonz_api_server${inputUniqueId}`}>
-                  <FormLabel>Scany API Server Base URL (Optional)</FormLabel>
+                  <FormLabel>Vendas IA API Server Base URL (Optional)</FormLabel>
                   <Input
                     type="text"
                     placeholder="https://jambonz.cloud/api"

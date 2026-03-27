@@ -4,7 +4,7 @@ Este arquivo fornece orientações para o Claude Code (claude.ai/code) ao trabal
 
 ## Visão Geral do Projeto
 
-Esta é uma extensão do Chrome para discagem telefônica WebRTC que se integra com a plataforma Scany. A extensão fornece uma solução VoIP completa com rastreamento de chamadas, gravação de áudio e capacidades de auditoria de chamadas. É construída com React, TypeScript e usa JsSIP para comunicação WebRTC.
+Esta é uma extensão do Chrome para discagem telefônica WebRTC que se integra com a plataforma Vendas IA. A extensão fornece uma solução VoIP completa com rastreamento de chamadas, gravação de áudio e capacidades de auditoria de chamadas. É construída com React, TypeScript e usa JsSIP para comunicação WebRTC.
 
 ## Comandos de Desenvolvimento
 
@@ -41,7 +41,7 @@ A extensão segue a arquitetura Chrome Extension Manifest V3:
 
 **Serviço de Auditoria** (`src/services/auditoriaService.ts`):
 - Funcionalidade de rastreamento e gravação de chamadas
-- Integração com API backend do Scany para auditorias de chamadas
+- Integração com API backend do Vendas IA para auditorias de chamadas
 - Suporta gravação local e integração com servidor Asterisk
 - Submissão automática de dados de chamadas e upload de arquivos de áudio
 
@@ -107,7 +107,7 @@ A extensão segue a arquitetura Chrome Extension Manifest V3:
 - Configuração de auditoria armazenada no storage da extensão
 
 ### Integração com API
-- Chamadas API RESTful para backend do Scany
+- Chamadas API RESTful para backend do Vendas IA
 - Suporte a autenticação JWT
 - Upload de arquivos para gravações de áudio
 - Submissão de dados de chamadas em tempo real
