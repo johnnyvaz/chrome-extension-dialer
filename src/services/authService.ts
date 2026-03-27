@@ -118,11 +118,32 @@ class AuthService {
       };
       await authStorage.saveUserData(operatorData);
 
-      // Salva upload config
+      // Busca informações da empresa (api_key e defaultProjectId)
+      let companyApiKey: string | undefined;
+      let companyDefaultProjectId: string | undefined;
+
+      try {
+        const { getCompanyInfo } = await import("../api/companyApi");
+        const companyInfo = await getCompanyInfo(user.empresaId);
+
+        companyApiKey = companyInfo.api_key;
+        companyDefaultProjectId = companyInfo.defaultProjectId;
+
+        console.log("Informações da empresa carregadas:", {
+          apiKey: companyApiKey ? "✓" : "✗",
+          projectId: companyDefaultProjectId || "N/A",
+        });
+      } catch (error) {
+        console.error("Erro ao buscar informações da empresa:", error);
+        // Continua sem api_key se houver erro
+      }
+
+      // Salva upload config com api_key e projectId da empresa
       const uploadConfig: UploadConfig = {
         uploadUrl: user.softphoneUploadUrl,
-        projectId: user.defaultProjectId,
+        projectId: companyDefaultProjectId || user.defaultProjectId,
         insightId: user.defaultInsightId,
+        apiKey: companyApiKey,
         updatedAt: Date.now(),
       };
       await authStorage.saveUploadConfig(uploadConfig);

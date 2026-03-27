@@ -2,18 +2,18 @@
  * ═══════════════════════════════════════════════════════════════
  * 📁 ANÁLISE ARQUITETURAL - PHONE_INDEX_COMPONENT
  * ═══════════════════════════════════════════════════════════════
- * 
+ *
  * 🏗️ ARQUITETURA ESCOLHIDA: Component Container + State Machine
  * 📊 ESTRUTURAS PRINCIPAIS: Hash Maps para callbacks SIP, Arrays para configurações, State objects
  * 🔄 FLUXO DE DADOS: Event-driven architecture com SIP WebRTC
- * 
+ *
  * 🎓 PADRÕES EDUCACIONAIS DEMONSTRADOS:
  * 1. Observer Pattern: Sistema de eventos SIP para mudanças de estado
  * 2. State Machine: Gerenciamento de estados de chamada (idle, ringing, answered, ended)
  * 3. Factory Pattern: Criação dinâmica de clientes SIP
  * 4. Two Pointers: Validação de entrada de números telefônicos
  * 5. Hash Maps: Armazenamento eficiente de configurações e callbacks
- * 
+ *
  * 💡 INSIGHTS ALGORÍTMICOS:
  * - Demonstra event-driven programming com WebRTC
  * - Implementa state machine para controle de fluxo de chamadas
@@ -24,9 +24,13 @@
  */
 
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
   Box,
   Button,
   Circle,
+  CloseButton,
   HStack,
   Heading,
   IconButton,
@@ -165,6 +169,8 @@ export const Phone = forwardRef(
 
     const [showAccounts, setShowAccounts] = useState(false);
 
+    const [apiError, setApiError] = useState<string | null>(null);
+
     const inputNumberRef = useRef(inputNumber);
     const sessionDirectionRef = useRef(sessionDirection);
     const sipUA = useRef<SipUA | null>(null);
@@ -219,33 +225,33 @@ export const Phone = forwardRef(
      * ═══════════════════════════════════════════════════════════════
      * 🎓 ANÁLISE EDUCACIONAL - ESTRUTURAS DE DADOS E ALGORITMOS
      * ═══════════════════════════════════════════════════════════════
-     * 
+     *
      * PADRÃO ALGORÍTMICO: Factory Pattern + Observer Pattern
      * ESTRUTURA DE DADOS PRINCIPAL: Hash Map para callbacks, Event Queue para mensagens SIP
      * COMPLEXIDADE TEMPORAL: O(1) para criação, O(n) para setup de listeners
      * COMPLEXIDADE ESPACIAL: O(n) onde n = número de event listeners
-     * 
+     *
      * 🤔 PORQUE ESTA ABORDAGEM:
      * - Factory Pattern permite criação dinâmica de clientes SIP com configurações diferentes
      * - Observer Pattern essencial para WebRTC onde eventos são assíncronos e não-determinísticos
      * - Hash Map para callbacks oferece O(1) lookup para event handling eficiente
      * - Event-driven architecture é ideal para comunicação em tempo real
-     * 
+     *
      * 🔗 CONEXÃO COM LEETCODE:
      * - Padrão: Observer Pattern (Design Patterns)
      * - Problemas Similares: Event Handler systems, Callback registration
      * - Variações: Publisher-Subscriber, Event Bus patterns
-     * 
+     *
      * ⚡ OTIMIZAÇÕES POSSÍVEIS:
      * - Implementar connection pooling para reutilizar conexões WebSocket
      * - Adicionar circuit breaker pattern para falhas de conexão
      * - Usar memoization para evitar recriação desnecessária de callbacks
-     * 
+     *
      * 🎯 CENÁRIOS DE USO NO PROJETO:
      * - Gerenciamento de sessões SIP com múltiplas contas
      * - Event handling para mudanças de estado de chamadas
      * - Integração com WebRTC para comunicação peer-to-peer
-     * 
+     *
      * 📚 CONCEITOS APRENDIDOS:
      * - Factory Pattern para criação de objetos complexos
      * - Observer Pattern para loose coupling em sistemas event-driven
@@ -304,7 +310,7 @@ export const Phone = forwardRef(
 
         if (args.error) {
           toast({
-            title: `Cannot connect to ${sipServerAddressRef.current}${
+            title: `não foi possível conectar ao ${sipServerAddressRef.current}${
               args.reason ? `, ${args.reason}` : ""
             }`,
             status: "warning",
@@ -352,6 +358,21 @@ export const Phone = forwardRef(
         setCallStatus(SipConstants.SESSION_FAILED);
         setSessionDirection("");
         stopCallDurationCounter();
+
+        // Captura mensagens de erro da API
+        if (args.description) {
+          try {
+            const errorData = JSON.parse(args.description);
+            if (errorData.error) {
+              setApiError(errorData.error);
+            }
+          } catch (e) {
+            // Se não for JSON, mostra a descrição direta
+            if (args.description.includes("Saldo") || args.description.includes("crédito")) {
+              setApiError(args.description);
+            }
+          }
+        }
       });
 
       sipClient.start();
@@ -537,33 +558,33 @@ export const Phone = forwardRef(
      * ═══════════════════════════════════════════════════════════════
      * 🎓 ANÁLISE EDUCACIONAL - ESTRUTURAS DE DADOS E ALGORITMOS
      * ═══════════════════════════════════════════════════════════════
-     * 
+     *
      * PADRÃO ALGORÍTMICO: Two Pointers + String Manipulation
      * ESTRUTURA DE DADOS PRINCIPAL: String (para número digitado), Boolean flags
      * COMPLEXIDADE TEMPORAL: O(1) - append operation
      * COMPLEXIDADE ESPACIAL: O(1) - apenas variables locais
-     * 
+     *
      * 🤔 PORQUE ESTA ABORDAGEM:
      * - String concatenation é O(1) em JavaScript moderno (otimização de engine)
      * - Boolean flag evita processamento duplo quando input vem do teclado
      * - Verificação de estado da chamada permite DTMF durante chamadas ativas
      * - Separação entre input visual e DTMF tones para UX responsiva
-     * 
+     *
      * 🔗 CONEXÃO COM LEETCODE:
      * - Padrão: String manipulation, Input validation
      * - Problemas Similares: Valid Phone Numbers, String Building
      * - Variações: Debouncing input, Pattern matching
-     * 
+     *
      * ⚡ OTIMIZAÇÕES POSSÍVEIS:
      * - Implementar debouncing para inputs rápidos consecutivos
      * - Validação de formato de número em tempo real
      * - Buffer circular para histórico de dígitos (undo functionality)
-     * 
+     *
      * 🎯 CENÁRIOS DE USO NO PROJETO:
      * - Input de números telefônicos com validação
      * - Envio de tons DTMF durante chamadas ativas
      * - Integração entre teclado físico e virtual
-     * 
+     *
      * 📚 CONCEITOS APRENDIDOS:
      * - String operations e sua complexidade
      * - Event handling com flags condicionais
@@ -587,6 +608,9 @@ export const Phone = forwardRef(
 
     const makeOutboundCall = (number: string, name: string = "") => {
       if (sipUA.current && number) {
+        // Limpa erro anterior
+        setApiError(null);
+
         setIsCallButtonLoading(true);
         setCallStatus(SipConstants.SESSION_RINGING);
         setSessionDirection("outgoing");
@@ -987,6 +1011,23 @@ export const Phone = forwardRef(
                   />
                 </Tooltip>
               </HStack>
+            )}
+
+            {/* Alerta de erro da API */}
+            {apiError && (
+              <Alert status="error" borderRadius="md" mt={2}>
+                <AlertIcon />
+                <AlertDescription flex="1" fontSize="sm">
+                  {apiError}
+                </AlertDescription>
+                <CloseButton
+                  alignSelf="flex-start"
+                  position="relative"
+                  right={-1}
+                  top={-1}
+                  onClick={() => setApiError(null)}
+                />
+              </Alert>
             )}
           </VStack>
         )}

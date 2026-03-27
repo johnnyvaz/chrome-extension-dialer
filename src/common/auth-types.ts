@@ -97,7 +97,23 @@ export interface UploadConfig {
   uploadUrl: string;
   projectId: string;
   insightId: string;
+  apiKey?: string; // API key da empresa para webhook do softphone
   updatedAt: number;
+}
+
+/**
+ * Dados da empresa retornados pelo endpoint /empresas/{id}
+ */
+export interface CompanyInfo {
+  id: string;
+  nome: string;
+  cnpj: string;
+  api_key: string;
+  defaultProjectId: string;
+  saldo_creditos: number;
+  created_at: string;
+  segmento?: string;
+  volume_auditorias_mensal?: string;
 }
 
 /**
@@ -252,12 +268,37 @@ export interface UploadCallPayload {
     callee: string;
     startedAt: string;
     durationSeconds: number;
-    projectId: string;
-    insightId: string;
+    projectId?: string;
+    insightId?: string;
   };
+}
+
+/**
+ * Formato esperado pelo backend da API
+ * Baseado no Swagger: apenas 3 campos obrigatórios + audio
+ */
+export interface UploadCallBackendPayload {
+  agentId: string; // ID do operador/agente (user ID)
+  callId: string; // Identificador único da chamada
+  duration: number; // Duração em segundos
 }
 
 export interface UploadCallResponse {
   recordingId: string;
+  message: string;
+}
+
+/**
+ * Payload para upload dual (agente + cliente) no webhook do softphone
+ */
+export interface UploadDualAudioPayload {
+  agenteAudio: File | Blob;
+  clienteAudio: File | Blob;
+  projectId: string;
+  apiKey: string;
+}
+
+export interface UploadDualAudioResponse {
+  success: boolean;
   message: string;
 }

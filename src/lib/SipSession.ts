@@ -13,6 +13,7 @@ import { IncomingResponse } from "jssip/lib/SIPMessage";
 import * as events from "events";
 import { C, Grammar } from "jssip";
 import { auditoriaService } from "../services/auditoriaService";
+import RecordRTC from "recordrtc";
 
 export default class SipSession extends events.EventEmitter {
   #id: string;
@@ -20,9 +21,12 @@ export default class SipSession extends events.EventEmitter {
   #audio: SipAudioElements;
   #rtcSession: RTCSession;
   #active: boolean;
-  #mediaRecorder: MediaRecorder | null = null;
-  #recordedChunks: Blob[] = [];
   #callStartTime: string | null = null;
+  // Gravação dual WAV
+  #recorderAgente: RecordRTC | null = null;
+  #recorderCliente: RecordRTC | null = null;
+  #agenteBlob: Blob | null = null;
+  #clienteBlob: Blob | null = null;
 
   constructor(
     rtcSession: RTCSession,
@@ -344,7 +348,7 @@ export default class SipSession extends events.EventEmitter {
   }
 
   /**
-   * Inicia gravação de áudio da chamada
+   * Inicia gravação dual de áudio da chamada (agente + cliente) em WAV
    */
   startRecording(): void {
     try {
@@ -354,65 +358,121 @@ export default class SipSession extends events.EventEmitter {
         return;
       }
 
-      // Obtém stream de áudio do peer connection
+      // Obtém tracks de áudio
       const receivers = pc.getReceivers();
-      const audioReceiver = receivers.find((r) => r.track.kind === "audio");
+      const senders = pc.getSenders();
 
-      if (!audioReceiver) {
-        console.warn("Nenhum track de áudio encontrado para gravar");
+      // Track remoto (cliente)
+      const remoteTrack = receivers.find((r) => r.track.kind === "audio")?.track;
+      if (!remoteTrack) {
+        console.warn("Track de áudio remoto não encontrado");
         return;
       }
 
-      const stream = new MediaStream([audioReceiver.track]);
+      // Track local (agente)
+      const localTrack = senders.find((s) => s.track?.kind === "audio")?.track;
+      if (!localTrack) {
+        console.warn("Track de áudio local não encontrado");
+        // Se não houver track local, continua apenas com remoto
+      }
 
-      // Configura MediaRecorder com codec WebM Opus
-      const options = {
-        mimeType: "audio/webm;codecs=opus",
-        audioBitsPerSecond: 32000, // 32kbps
-      };
+      // Cria streams separados
+      const clienteStream = new MediaStream([remoteTrack]);
 
-      this.#mediaRecorder = new MediaRecorder(stream, options);
-      this.#recordedChunks = [];
+      // Configura gravador do cliente (áudio remoto)
+      this.#recorderCliente = new RecordRTC(clienteStream, {
+        type: "audio",
+        mimeType: "audio/wav",
+        recorderType: RecordRTC.StereoAudioRecorder,
+        numberOfAudioChannels: 1, // Mono
+        desiredSampRate: 16000, // 16kHz (bom para transcrição)
+        timeSlice: 1000,
+      });
 
-      this.#mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          this.#recordedChunks.push(event.data);
-        }
-      };
+      this.#recorderCliente.startRecording();
+      console.log("Gravação do cliente iniciada (WAV 16kHz mono)");
 
-      this.#mediaRecorder.onstop = async () => {
-        await this.handleRecordingComplete();
-      };
+      // Se houver track local, grava também
+      if (localTrack) {
+        const agenteStream = new MediaStream([localTrack]);
 
-      this.#mediaRecorder.start(1000); // Captura chunks a cada 1 segundo
-      console.log("Gravação iniciada");
+        this.#recorderAgente = new RecordRTC(agenteStream, {
+          type: "audio",
+          mimeType: "audio/wav",
+          recorderType: RecordRTC.StereoAudioRecorder,
+          numberOfAudioChannels: 1, // Mono
+          desiredSampRate: 16000, // 16kHz
+          timeSlice: 1000,
+        });
+
+        this.#recorderAgente.startRecording();
+        console.log("Gravação do agente iniciada (WAV 16kHz mono)");
+      }
     } catch (error) {
-      console.error("Erro ao iniciar gravação:", error);
+      console.error("Erro ao iniciar gravação dual:", error);
     }
   }
 
   /**
-   * Para gravação de áudio
+   * Para gravação dual de áudio
    */
   stopRecording(): void {
-    if (this.#mediaRecorder && this.#mediaRecorder.state !== "inactive") {
-      this.#mediaRecorder.stop();
-      console.log("Gravação parada");
+    try {
+      if (this.#recorderCliente && this.#recorderCliente.getState() !== "inactive") {
+        this.#recorderCliente.stopRecording(() => {
+          this.#clienteBlob = this.#recorderCliente!.getBlob();
+          console.log("Gravação do cliente parada");
+          this.checkAndProcessRecordings();
+        });
+      }
+
+      if (this.#recorderAgente && this.#recorderAgente.getState() !== "inactive") {
+        this.#recorderAgente.stopRecording(() => {
+          this.#agenteBlob = this.#recorderAgente!.getBlob();
+          console.log("Gravação do agente parada");
+          this.checkAndProcessRecordings();
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao parar gravação dual:", error);
     }
   }
 
   /**
-   * Processa gravação completa e enfileira para upload
+   * Verifica se ambas gravações terminaram e processa
+   */
+  private checkAndProcessRecordings(): void {
+    // Espera ambas as gravações terminarem (ou apenas cliente se não houver agente)
+    const agenteReady = !this.#recorderAgente || this.#agenteBlob !== null;
+    const clienteReady = this.#clienteBlob !== null;
+
+    if (agenteReady && clienteReady) {
+      this.handleRecordingComplete().catch((error) => {
+        console.error("Erro ao processar gravações:", error);
+      });
+    }
+  }
+
+  /**
+   * Processa gravação dual completa e faz upload
    */
   async handleRecordingComplete(): Promise<void> {
     try {
-      if (this.#recordedChunks.length === 0) {
-        console.warn("Nenhum chunk gravado");
+      if (!this.#clienteBlob) {
+        console.warn("Gravação do cliente não disponível");
         return;
       }
 
-      // Cria blob de áudio
-      const audioBlob = new Blob(this.#recordedChunks, { type: "audio/webm" });
+      // Obtém upload config do storage
+      const { getUploadConfig } = await import("../storage/authStorage");
+      const uploadConfig = await getUploadConfig();
+
+      if (!uploadConfig || !uploadConfig.apiKey || !uploadConfig.projectId) {
+        console.warn(
+          "Upload config não disponível - gravação não será enviada"
+        );
+        return;
+      }
 
       // Calcula duração da chamada
       const now = new Date();
@@ -423,46 +483,54 @@ export default class SipSession extends events.EventEmitter {
         (now.getTime() - startTime.getTime()) / 1000
       );
 
-      // Obtém upload config do storage
-      const { getUploadConfig } = await import("../storage/authStorage");
-      const uploadConfig = await getUploadConfig();
+      // Gera timestamp
+      const timestamp = Date.now();
 
-      if (!uploadConfig) {
-        console.warn(
-          "Upload config não disponível - gravação não será enviada"
-        );
-        return;
-      }
+      // Obtém número do telefone
+      const phoneNumber = this.user || "unknown";
 
-      // Cria objeto de gravação
-      const recording = {
-        id: this.#id,
-        caller: this.direction === "incoming" ? this.user : "unknown",
-        callee: this.direction === "outgoing" ? this.user : "unknown",
-        startedAt: this.#callStartTime || now.toISOString(),
-        durationSeconds,
-        audioBlob,
-        audioSizeBytes: audioBlob.size,
+      // Obtém ramal do operador do storage
+      const { getUserData } = await import("../storage/authStorage");
+      const userData = await getUserData();
+      const ramal = userData?.extension?.extensionNumber || "0000";
+
+      // Prepara payload do upload
+      const uploadPayload = {
+        agenteAudio: this.#agenteBlob || new Blob([], { type: "audio/wav" }),
+        clienteAudio: this.#clienteBlob,
         projectId: uploadConfig.projectId,
-        insightId: uploadConfig.insightId,
-        uploadStatus: "pending" as const,
-        createdAt: Date.now(),
+        apiKey: uploadConfig.apiKey,
+        ramal,
+        phoneNumber,
+        timestamp,
       };
 
-      // Enfileira para upload
-      const { uploadService } = await import("../services/uploadService");
-      await uploadService.enqueue(recording);
+      // Se não houver gravação do agente, loga warning
+      if (!this.#agenteBlob) {
+        console.warn("Gravação do agente não disponível, enviando apenas cliente");
+      }
 
-      console.log("Gravação enfileirada para upload:", {
-        id: recording.id,
-        size: audioBlob.size,
+      // Upload dual
+      const { uploadDualAudio } = await import("../api/uploadApi");
+      await uploadDualAudio(uploadPayload);
+
+      const baseFilename = `${timestamp}-RAMAL-${ramal}-NUMERO-${phoneNumber}-UNIQUEID-${timestamp}.0`;
+
+      console.log("Gravações WAV dual enviadas com sucesso:", {
+        id: this.#id,
+        baseFilename,
+        agenteSizeMB: this.#agenteBlob ? (this.#agenteBlob.size / 1024 / 1024).toFixed(2) : "0",
+        clienteSizeMB: (this.#clienteBlob.size / 1024 / 1024).toFixed(2),
         duration: durationSeconds,
       });
 
-      // Limpa chunks
-      this.#recordedChunks = [];
+      // Limpa blobs
+      this.#agenteBlob = null;
+      this.#clienteBlob = null;
+      this.#recorderAgente = null;
+      this.#recorderCliente = null;
     } catch (error) {
-      console.error("Erro ao processar gravação:", error);
+      console.error("Erro ao processar gravações dual:", error);
     }
   }
 }

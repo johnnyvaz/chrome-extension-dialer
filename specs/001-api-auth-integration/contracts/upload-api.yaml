@@ -9,7 +9,7 @@ servers:
     description: Staging environment
 
 paths:
-  /softphone/uploads:
+  /softphone/upload:
     post:
       tags: [Uploads]
       summary: Upload de gravação de chamada

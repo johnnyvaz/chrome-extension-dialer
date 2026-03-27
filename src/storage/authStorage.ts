@@ -108,6 +108,14 @@ export async function getAuthToken(): Promise<string | null> {
 }
 
 /**
+ * Recupera apenas o ID do usuário
+ */
+export async function getUserId(): Promise<string | null> {
+  const result = await chrome.storage.session.get(STORAGE_KEYS.SESSION.USER_ID);
+  return result[STORAGE_KEYS.SESSION.USER_ID] || null;
+}
+
+/**
  * Verifica se usuário está autenticado
  */
 export async function isAuthenticated(): Promise<boolean> {
@@ -148,7 +156,7 @@ export async function clearAuthSession(): Promise<void> {
  */
 
 /**
- * Salva configuração de upload (projectId, insightId, uploadUrl)
+ * Salva configuração de upload (projectId, insightId, uploadUrl, apiKey)
  */
 export async function saveUploadConfig(config: UploadConfig): Promise<void> {
   await chrome.storage.local.set({
@@ -156,6 +164,7 @@ export async function saveUploadConfig(config: UploadConfig): Promise<void> {
       uploadUrl: config.uploadUrl,
       projectId: config.projectId,
       insightId: config.insightId,
+      apiKey: config.apiKey,
       updatedAt: Date.now(),
     },
   });
@@ -168,7 +177,7 @@ export async function getUploadConfig(): Promise<UploadConfig | null> {
   const result = await chrome.storage.local.get(STORAGE_KEYS.LOCAL.UPLOAD_CONFIG);
   const config = result[STORAGE_KEYS.LOCAL.UPLOAD_CONFIG];
 
-  if (!config || !config.uploadUrl || !config.projectId || !config.insightId) {
+  if (!config || !config.projectId) {
     return null;
   }
 

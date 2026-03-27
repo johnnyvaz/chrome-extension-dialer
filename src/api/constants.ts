@@ -31,7 +31,15 @@ export const AUTH_ENDPOINTS = {
  * Upload endpoints
  */
 export const UPLOAD_ENDPOINTS = {
-  SOFTPHONE_UPLOAD: `${API_BASE_URL}/softphone/uploads`,
+  SOFTPHONE_UPLOAD: `${API_BASE_URL}/softphone/upload`,
+  WEBHOOK_SOFTPHONE_DUAL: (projectId: string) => `${API_BASE_URL}/webhook/softphone/${projectId}/upload`,
+} as const;
+
+/**
+ * Company endpoints
+ */
+export const COMPANY_ENDPOINTS = {
+  GET_COMPANY: (companyId: string) => `${API_BASE_URL}/empresas/${companyId}`,
 } as const;
 
 /**
