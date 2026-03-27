@@ -9,8 +9,8 @@ export const MSG_SOMETHING_WRONG = "Something went wrong, please try again";
 /**
  * Base URL for Scany API (staging environment)
  */
-export const API_BASE_URL = 'http://localhost:3000/api/v1';
-// export const API_BASE_URL = 'https://api.stage.scany.com.br/api/v1';
+// export const API_BASE_URL = 'http://localhost:3000/api/v1';
+export const API_BASE_URL = 'https://api.scany.com.br/api/v1';
 
 /**
  * Authentication endpoints
